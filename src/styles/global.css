@@ -1,0 +1,441 @@
+@import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600&display=swap');
+
+:root {
+  color-scheme: dark;
+  font-family: 'Noto Serif SC', serif;
+  background: #0d1b22;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+.game-shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 50% 20%, #234952 0%, #0d1b22 55%, #081016 100%);
+}
+
+.game-shell canvas {
+  display: block;
+}
+
+.game-hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 28px 32px;
+}
+
+.game-hud__title h1 {
+  margin: 6px 0 0;
+  font-family: 'Ma Shan Zheng', cursive;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  color: #f3e6c8;
+  text-shadow: 0 0 18px rgba(201, 164, 92, 0.35);
+}
+
+.game-hud__eyebrow {
+  margin: 0;
+  font-size: 0.85rem;
+  letter-spacing: 0.24em;
+  color: rgba(243, 230, 200, 0.72);
+}
+
+.game-hud__controls {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.game-hud__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.game-hud__hint--sub {
+  font-size: 0.82rem;
+  opacity: 0.85;
+}
+
+.game-hud__hint,
+.game-hud__status {
+  margin: 0;
+  padding: 10px 16px;
+  border: 1px solid rgba(201, 164, 92, 0.28);
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+  background: rgba(8, 16, 22, 0.42);
+  color: #e8dcc0;
+  font-size: 0.92rem;
+  letter-spacing: 0.08em;
+}
+
+.game-hud__status {
+  color: #c9a45c;
+}
+
+.outfit-panel {
+  position: absolute;
+  top: 28px;
+  right: 28px;
+  width: min(360px, calc(100vw - 56px));
+  max-height: calc(100vh - 56px);
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid rgba(201, 164, 92, 0.28);
+  border-radius: 20px;
+  backdrop-filter: blur(12px);
+  background: rgba(8, 16, 22, 0.72);
+  color: #f3e6c8;
+  pointer-events: auto;
+}
+
+.outfit-panel__header h2 {
+  margin: 4px 0 0;
+  font-family: 'Ma Shan Zheng', cursive;
+  font-size: 2rem;
+  font-weight: 400;
+}
+
+.outfit-panel__desc {
+  margin: 10px 0 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: rgba(243, 230, 200, 0.78);
+}
+
+.outfit-panel__parts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.outfit-panel__part-tag {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 164, 92, 0.22);
+  font-size: 0.74rem;
+  color: rgba(243, 230, 200, 0.88);
+}
+
+.outfit-panel__eyebrow {
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.22em;
+  color: rgba(243, 230, 200, 0.72);
+}
+
+.outfit-panel__label {
+  display: block;
+  margin: 16px 0 8px;
+  font-size: 0.88rem;
+  color: rgba(243, 230, 200, 0.82);
+}
+
+.outfit-panel__input {
+  width: 100%;
+  resize: vertical;
+  min-height: 96px;
+  padding: 12px 14px;
+  border: 1px solid rgba(201, 164, 92, 0.24);
+  border-radius: 12px;
+  background: rgba(13, 27, 34, 0.88);
+  color: #f3e6c8;
+  font: inherit;
+}
+
+.outfit-panel__presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.outfit-panel__preset,
+.outfit-panel__primary,
+.outfit-panel__ghost {
+  border: 1px solid rgba(201, 164, 92, 0.28);
+  border-radius: 999px;
+  background: rgba(201, 164, 92, 0.12);
+  color: #f3e6c8;
+  font: inherit;
+  cursor: pointer;
+}
+
+.outfit-panel__preset {
+  padding: 6px 12px;
+  font-size: 0.78rem;
+}
+
+.outfit-panel__primary {
+  width: 100%;
+  margin-top: 8px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(201, 164, 92, 0.34), rgba(120, 88, 48, 0.42));
+}
+
+.outfit-panel__ghost {
+  padding: 8px 14px;
+  background: transparent;
+}
+
+.outfit-panel__primary:disabled,
+.outfit-panel__preset:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.outfit-panel__error {
+  margin: 12px 0 0;
+  color: #ff9d9d;
+  font-size: 0.86rem;
+}
+
+.outfit-panel__preview {
+  margin-top: 16px;
+}
+
+.outfit-panel__preview-title {
+  margin: 0 0 8px;
+  font-size: 0.88rem;
+  color: rgba(243, 230, 200, 0.82);
+}
+
+.outfit-panel__preview img {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(201, 164, 92, 0.24);
+  background: rgba(13, 27, 34, 0.88);
+}
+
+.outfit-panel__atlas-preview {
+  image-rendering: pixelated;
+  max-width: 256px;
+}
+
+.outfit-panel__actions {
+  margin-top: 12px;
+}
+
+.outfit-panel__applied {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(201, 164, 92, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.88rem;
+}
+
+.side-panel {
+  position: absolute;
+  top: 28px;
+  width: min(320px, calc(100vw - 56px));
+  max-height: calc(100vh - 56px);
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid rgba(201, 164, 92, 0.28);
+  border-radius: 20px;
+  backdrop-filter: blur(12px);
+  background: rgba(8, 16, 22, 0.72);
+  color: #f3e6c8;
+  pointer-events: auto;
+}
+
+.side-panel--left {
+  left: 28px;
+}
+
+.side-panel__header h2 {
+  margin: 4px 0 0;
+  font-family: 'Ma Shan Zheng', cursive;
+  font-size: 2rem;
+  font-weight: 400;
+}
+
+.side-panel__eyebrow {
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.22em;
+  color: rgba(243, 230, 200, 0.72);
+}
+
+.side-panel__desc {
+  margin: 10px 0 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: rgba(243, 230, 200, 0.78);
+}
+
+.side-panel__actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.side-panel__action {
+  padding: 10px 12px;
+  border: 1px solid rgba(201, 164, 92, 0.28);
+  border-radius: 12px;
+  background: rgba(201, 164, 92, 0.1);
+  color: #f3e6c8;
+  font: inherit;
+  cursor: pointer;
+}
+
+.side-panel__action--active {
+  background: linear-gradient(135deg, rgba(201, 164, 92, 0.34), rgba(120, 88, 48, 0.42));
+  color: #fff6df;
+}
+
+.side-panel__meta {
+  margin: 14px 0 0;
+  font-size: 0.86rem;
+  color: #c9a45c;
+}
+
+.battle-hud {
+  gap: 20px;
+}
+
+.battle-hud__log {
+  position: absolute;
+  top: 28px;
+  right: 32px;
+  width: min(320px, 32vw);
+  max-height: min(280px, 34vh);
+  overflow-y: auto;
+  padding: 14px 16px;
+  border: 1px solid rgba(201, 164, 92, 0.22);
+  border-radius: 16px;
+  backdrop-filter: blur(8px);
+  background: rgba(8, 16, 22, 0.72);
+  pointer-events: auto;
+}
+
+.battle-hud__log-title {
+  margin: 0 0 10px;
+  font-size: 0.78rem;
+  letter-spacing: 0.22em;
+  color: rgba(243, 230, 200, 0.72);
+}
+
+.battle-hud__arena {
+  pointer-events: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 18px;
+  margin-top: auto;
+  padding-bottom: 8px;
+}
+
+.battle-hud__unit {
+  padding: 14px 16px;
+  border: 1px solid rgba(201, 164, 92, 0.28);
+  border-radius: 16px;
+  backdrop-filter: blur(8px);
+  background: rgba(8, 16, 22, 0.52);
+}
+
+.battle-hud__unit-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  color: #f3e6c8;
+  font-size: 0.92rem;
+}
+
+.battle-hud__hp-track {
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.battle-hud__hp-fill {
+  height: 100%;
+  border-radius: inherit;
+  transition: width 0.28s ease;
+}
+
+.battle-hud__hp-fill--player {
+  background: linear-gradient(90deg, #5cb4a8, #8ed9c7);
+}
+
+.battle-hud__hp-fill--enemy {
+  background: linear-gradient(90deg, #c96a5c, #ef9a8d);
+}
+
+.battle-hud__center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-width: 140px;
+}
+
+.battle-hud__turn {
+  margin: 0;
+  color: #c9a45c;
+  font-size: 0.88rem;
+  letter-spacing: 0.12em;
+}
+
+.battle-hud__status {
+  margin: 0;
+  color: #e8dcc0;
+  font-size: 0.88rem;
+}
+
+.battle-hud__start {
+  padding: 10px 18px;
+  border: 1px solid rgba(201, 164, 92, 0.34);
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(201, 164, 92, 0.34), rgba(120, 88, 48, 0.42));
+  color: #fff6df;
+  font: inherit;
+  cursor: pointer;
+}
+
+.battle-hud__start:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.battle-hud__log-line {
+  margin: 0;
+  color: rgba(243, 230, 200, 0.88);
+  font-size: 0.84rem;
+  line-height: 1.6;
+}
+
+.battle-hud__log-line + .battle-hud__log-line {
+  margin-top: 4px;
+}
+
+.battle-hud__log-line--error {
+  color: #ff9d9d;
+}
