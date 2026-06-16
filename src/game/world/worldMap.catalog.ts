@@ -35,6 +35,3 @@ export const WORLD_MAP_CATALOG: WorldMapChapter[] = [
 ]
 
 export const MAP_ASSET_BASE = '/game-ui/maps'
-
-export const MAP_STYLE_SUFFIX =
-  '东方玄幻，武侠修仙，新国风水墨，工笔重彩，古代山海经风格，卷轴质感，俯视角地图，等距视角，手绘地图，色块化地形，低饱和配色，水墨晕染，留白构图，符号化植被，游戏地图概念设计，高细节，统一世界观，无现代元素'

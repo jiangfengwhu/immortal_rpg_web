@@ -12,6 +12,16 @@ import {
   type BattleResult,
   type PlayerFullState,
 } from '../api/player'
+import {
+  startWildBattle,
+  resolveAdventure,
+  refreshBounties,
+  acceptBounty,
+  claimBounty,
+  hatchPet,
+  mutatePet,
+  activatePet,
+} from '../api/wild'
 import type { PlayerClass, PrimaryAttributes } from './character/character.types'
 import type { Equipment } from './equipment/equipment.types'
 import { createPlayerId, SESSION_STORAGE_KEY } from './session.const'
@@ -21,12 +31,10 @@ import { isOnboardingDone, markOnboardingDone } from './onboarding/onboarding.st
 import { toPlayerErrorMessage } from './ui/playerError'
 import { PLAYER_COPY } from './ui/playerCopy'
 import { useBattleStore } from '../battle/battleStore'
-import { buildLootFloat, type LootFloatPayload } from './loot/lootFloat'
-import type { HarvestFloatPayload } from './harvest/harvest.types'
 import { startHarvestLoop, stopHarvestLoop } from './harvest/harvestLoop'
-import { STORY_FEATURE_KEYS } from './quest/story.constants'
 import { useInfoFeedStore } from './infoFeed/infoFeedStore'
 import type { AfkTickResponse } from '../api/afk'
+import { REALM_LABELS } from './character/character.constants'
 
 function opponentNameFromState(state: PlayerFullState | null, fallback: string | null) {
   return state?.opponentName?.trim() || fallback
@@ -41,10 +49,15 @@ type GameSessionStore = {
   lastOpponentName: string | null
   errorMessage: string
   isSaving: boolean
-  inventoryOpen: boolean
-  inventoryUnread: boolean
-  lootFloat: LootFloatPayload | null
-  harvestFloat: HarvestFloatPayload | null
+  adrenalineEvent: {
+    type: 'loot' | 'pet' | 'skill' | 'mutate'
+    title: string
+    subtitle: string
+    name: string
+    rarity?: string
+    skills?: string[]
+    narrative?: string
+  } | null
   afkTickInFlight: boolean
   settingsOpen: boolean
   mapTravelOpen: boolean
@@ -56,9 +69,6 @@ type GameSessionStore = {
   allocatePoint: (attr: keyof PrimaryAttributes) => Promise<void>
   autoAllocate: () => Promise<void>
   claimBattleReward: () => Promise<BattleResult | null>
-  toggleInventory: () => void
-  clearLootFloat: () => void
-  clearHarvestFloat: () => void
   toggleSettings: () => void
   toggleMapTravel: () => void
   toggleJourneyModal: () => void
@@ -74,6 +84,16 @@ type GameSessionStore = {
   resumeAfkGatherLoop: (feature: string) => void
   equipItemById: (itemId: string) => Promise<void>
   identifyItemById: (itemId: string) => Promise<void>
+  runWildBattle: () => Promise<void>
+  resolveActiveAdventure: (choiceId: string) => Promise<void>
+  refreshPlayerBounties: () => Promise<void>
+  acceptPlayerBounty: (bountyId: string) => Promise<void>
+  claimPlayerBounty: (bountyId: string) => Promise<void>
+  hatchPlayerPet: () => Promise<any>
+  mutatePlayerPet: (petId: string) => Promise<any>
+  activatePlayerPet: (petId: string) => Promise<void>
+  setAdrenalineEvent: (event: GameSessionStore['adrenalineEvent']) => void
+  clearAdrenalineEvent: () => void
   clearSession: () => void
 }
 
@@ -91,22 +111,22 @@ function applyAfkTickResponse(
   get: () => GameSessionStore,
   set: (partial: Partial<GameSessionStore>) => void,
 ) {
+  const oldLevel = get().playerState?.player.level
   const claim = response.claim
   const loot = claim?.loot
-  const harvestFloat =
-    feature === STORY_FEATURE_KEYS.afkHerb && loot && loot.length > 0
-      ? { feature, items: loot.map((item) => ({ name: item.name, count: item.count })) }
-      : null
 
   if (response.player) {
+    const nextLevel = response.player.player.level
+    if (oldLevel && nextLevel > oldLevel) {
+      const realm = response.player.player.realm
+      const realmLabel = realm ? (REALM_LABELS[realm] ?? realm) : ''
+      const text = `境界精进！你已突破至 Lv. ${nextLevel} · ${realmLabel}！`
+      useInfoFeedStore.getState().pushResult(text, 'success')
+    }
     set({
       playerState: response.player,
       lastOpponentName: opponentNameFromState(response.player, get().lastOpponentName),
-      inventoryUnread: Boolean(loot?.length) || get().inventoryUnread,
-      harvestFloat: harvestFloat ?? get().harvestFloat,
     })
-  } else if (harvestFloat) {
-    set({ harvestFloat, inventoryUnread: true })
   }
 
   return {
@@ -122,10 +142,7 @@ export const useGameSessionStore = create<GameSessionStore>((set, get) => ({
   lastOpponentName: null,
   errorMessage: '',
   isSaving: false,
-  inventoryOpen: false,
-  inventoryUnread: false,
-  lootFloat: null,
-  harvestFloat: null,
+  adrenalineEvent: null,
   afkTickInFlight: false,
   settingsOpen: false,
   mapTravelOpen: false,
@@ -182,9 +199,6 @@ export const useGameSessionStore = create<GameSessionStore>((set, get) => ({
         playerState,
         lastBattleResult: null,
         lastOpponentName: null,
-        inventoryOpen: false,
-        inventoryUnread: false,
-        lootFloat: null,
         settingsOpen: false,
         mapTravelOpen: false,
         journeyModalOpen: false,
@@ -244,13 +258,47 @@ export const useGameSessionStore = create<GameSessionStore>((set, get) => ({
     try {
       const result = await startBattle(playerState.player.id)
       const nextState = await fetchPlayer(playerState.player.id)
-      const lootFloat = result.dropId ? buildLootFloat(result, nextState.inventory) : null
+
+      if (result.leveledUp) {
+        const realm = nextState.player.realm
+        const realmLabel = realm ? (REALM_LABELS[realm] ?? realm) : ''
+        const text = `境界精进！你已突破至 Lv. ${nextState.player.level} · ${realmLabel}！`
+        useInfoFeedStore.getState().pushResult(text, 'success')
+      }
+
+      if (result.newSpell) {
+        set({
+          adrenalineEvent: {
+            type: 'skill',
+            title: '【 顿 悟 绝 学 ！】',
+            subtitle: '虚空震动，福至心灵！',
+            name: result.newSpell,
+            rarity: 'legendary',
+            narrative: `你与「${result.bossName}」激战，交锋之中偶然窥得天机，顿悟了盖世绝学：《${result.newSpell}》！`,
+          }
+        })
+      } else if (result.dropId && ['epic', 'legendary', 'mythic'].includes(result.dropRarity || '')) {
+        set({
+          adrenalineEvent: {
+            type: 'loot',
+            title: `【 极 品 装备 掉 落 ！】`,
+            subtitle: result.dropRarity === 'mythic' ? '天地变色，神兵出世！' : result.dropRarity === 'legendary' ? '金光万丈，仙器降临！' : '紫气东来，宝光内敛！',
+            name: result.dropName || '稀有神兵',
+            rarity: result.dropRarity,
+            narrative: `击败「${result.bossName}」后，竟从其身上震落了极品装备：【${result.dropName}】！`,
+          }
+        })
+      }
+
       set({
         playerState: nextState,
         lastBattleResult: result,
         lastOpponentName: result.bossName?.trim() || opponentNameFromState(nextState, get().lastOpponentName),
-        ...(lootFloat ? { inventoryUnread: true, lootFloat } : {}),
       })
+      useInfoFeedStore.getState().syncChronicle(
+        nextState.storyState?.storyChronicle ?? [],
+        nextState.storyState?.pendingNarratives ?? [],
+      )
       return result
     } catch (error) {
       set({ errorMessage: toPlayerErrorMessage(error, '战利未能清点，请稍后再试') })
@@ -260,15 +308,9 @@ export const useGameSessionStore = create<GameSessionStore>((set, get) => ({
     }
   },
 
-  toggleInventory: () =>
-    set((state) => ({
-      inventoryOpen: !state.inventoryOpen,
-      inventoryUnread: state.inventoryOpen ? state.inventoryUnread : false,
-    })),
+  setAdrenalineEvent: (event) => set({ adrenalineEvent: event }),
 
-  clearLootFloat: () => set({ lootFloat: null }),
-
-  clearHarvestFloat: () => set({ harvestFloat: null }),
+  clearAdrenalineEvent: () => set({ adrenalineEvent: null }),
 
   toggleSettings: () => set((state) => ({ settingsOpen: !state.settingsOpen })),
 
@@ -284,6 +326,27 @@ export const useGameSessionStore = create<GameSessionStore>((set, get) => ({
     try {
       const result = await advanceQuest(playerState.player.id)
       const nextState = await fetchPlayer(playerState.player.id)
+
+      if (result.leveledUp || nextState.player.level > playerState.player.level) {
+        const realm = nextState.player.realm
+        const realmLabel = realm ? (REALM_LABELS[realm] ?? realm) : ''
+        const text = `境界精进！你已突破至 Lv. ${nextState.player.level} · ${realmLabel}！`
+        useInfoFeedStore.getState().pushResult(text, 'success')
+      }
+
+      if (result.newSpell) {
+        set({
+          adrenalineEvent: {
+            type: 'skill',
+            title: '【 顿 悟 绝 学 ！】',
+            subtitle: '虚空震动，福至心灵！',
+            name: result.newSpell,
+            rarity: 'legendary',
+            narrative: `你在晋升启程之时，突然心有所感，当场顿悟了盖世绝学：《${result.newSpell}》！`,
+          }
+        })
+      }
+
       set({
         playerState: nextState,
         mapTravelOpen: false,
@@ -305,13 +368,7 @@ export const useGameSessionStore = create<GameSessionStore>((set, get) => ({
   },
 
   beginOnboardingIfNeeded: () => {
-    const { playerState, onboardingStep } = get()
-    if (!playerState || onboardingStep !== null) return
-    const { id, stageIndex, battlesWon } = playerState.player
-    if (isOnboardingDone(id)) return
-    if (stageIndex === 0 && battlesWon === 0) {
-      set({ onboardingStep: 0 })
-    }
+    // 引导已删除，不启用 Onboarding
   },
 
   nextOnboardingStep: () => {
@@ -342,7 +399,15 @@ export const useGameSessionStore = create<GameSessionStore>((set, get) => ({
   applyStoryEvent: async (result) => {
     const playerId = get().playerState?.player.id
     if (!playerId) return
+    const oldLevel = get().playerState?.player.level
     const nextState = await fetchPlayer(playerId)
+    const nextLevel = nextState.player.level
+    if (oldLevel && nextLevel > oldLevel) {
+      const realm = nextState.player.realm
+      const realmLabel = realm ? (REALM_LABELS[realm] ?? realm) : ''
+      const text = `境界精进！你已突破至 Lv. ${nextLevel} · ${realmLabel}！`
+      useInfoFeedStore.getState().pushResult(text, 'success')
+    }
     set({
       playerState: {
         ...nextState,
@@ -352,8 +417,6 @@ export const useGameSessionStore = create<GameSessionStore>((set, get) => ({
       lastOpponentName: opponentNameFromState(nextState, get().lastOpponentName),
     })
   },
-
-  clearHarvestFloat: () => set({ harvestFloat: null }),
 
   tickAfkGather: async (feature) => {
     const { playerState, afkTickInFlight } = get()
@@ -396,7 +459,7 @@ export const useGameSessionStore = create<GameSessionStore>((set, get) => ({
     } catch (error) {
       return {
         ok: false,
-        message: toPlayerErrorMessage(error, '无法开始采药'),
+        message: toPlayerErrorMessage(error, '无法开始采集'),
       }
     }
   },
@@ -465,6 +528,231 @@ export const useGameSessionStore = create<GameSessionStore>((set, get) => ({
     }
   },
 
+  runWildBattle: async () => {
+    const { playerState, isSaving } = get()
+    if (!playerState || isSaving) return
+
+    set({ isSaving: true, errorMessage: '' })
+    try {
+      const response = await startWildBattle(playerState.player.id)
+      const result = response.result
+      const nextState = response.player
+
+      if (result.leveledUp) {
+        const realm = nextState.player.realm
+        const realmLabel = realm ? (REALM_LABELS[realm] ?? realm) : ''
+        const text = `境界精进！你已突破至 Lv. ${nextState.player.level} · ${realmLabel}！`
+        useInfoFeedStore.getState().pushResult(text, 'success')
+      }
+
+      if (result.newSpell) {
+        set({
+          adrenalineEvent: {
+            type: 'skill',
+            title: '【 顿 悟 绝 学 ！】',
+            subtitle: '虚空震动，福至心灵！',
+            name: result.newSpell,
+            rarity: 'legendary',
+            narrative: `你在野外与「${result.bossName}」交战切磋，突然灵光一闪，顿悟了盖世绝学：《${result.newSpell}》！`,
+          }
+        })
+      } else if (result.dropId && ['epic', 'legendary', 'mythic'].includes(result.dropRarity || '')) {
+        set({
+          adrenalineEvent: {
+            type: 'loot',
+            title: `【 极 品 装备 掉 落 ！】`,
+            subtitle: result.dropRarity === 'mythic' ? '天地变色，神兵出世！' : result.dropRarity === 'legendary' ? '金光万丈，仙器降临！' : '紫气东来，宝光内敛！',
+            name: result.dropName || '稀有神兵',
+            rarity: result.dropRarity,
+            narrative: `在林野中击败「${result.bossName}」后，竟从其巢穴寻得了极品装备：【${result.dropName}】！`,
+          }
+        })
+      }
+
+      set({
+        playerState: nextState,
+        lastBattleResult: result,
+        lastOpponentName: result.bossName?.trim(),
+      })
+
+      useInfoFeedStore.getState().syncChronicle(
+        nextState.storyState?.storyChronicle ?? [],
+        nextState.storyState?.pendingNarratives ?? [],
+      )
+
+      const battleStore = useBattleStore.getState()
+      battleStore.resetBattleArena()
+      battleStore.startBattle()
+      // Mark as reward settled so client won't try to sync battle start rewards again
+      useBattleStore.setState({ rewardSettled: true })
+    } catch (error) {
+      set({ errorMessage: toPlayerErrorMessage(error, '寻找野外对手失败') })
+    } finally {
+      set({ isSaving: false })
+    }
+  },
+
+  resolveActiveAdventure: async (choiceId) => {
+    const { playerState, isSaving } = get()
+    if (!playerState || isSaving) return
+
+    set({ isSaving: true, errorMessage: '' })
+    try {
+      const nextState = await resolveAdventure(playerState.player.id, choiceId)
+      set({ playerState: nextState })
+      useInfoFeedStore.getState().syncChronicle(
+        nextState.storyState?.storyChronicle ?? [],
+        nextState.storyState?.pendingNarratives ?? [],
+      )
+    } catch (error) {
+      set({ errorMessage: toPlayerErrorMessage(error, '决策奇遇失败') })
+    } finally {
+      set({ isSaving: false })
+    }
+  },
+
+  refreshPlayerBounties: async () => {
+    const { playerState, isSaving } = get()
+    if (!playerState || isSaving) return
+
+    set({ isSaving: true, errorMessage: '' })
+    try {
+      const nextState = await refreshBounties(playerState.player.id)
+      set({ playerState: nextState })
+    } catch (error) {
+      set({ errorMessage: toPlayerErrorMessage(error, '刷新悬赏失败') })
+    } finally {
+      set({ isSaving: false })
+    }
+  },
+
+  acceptPlayerBounty: async (bountyId) => {
+    const { playerState, isSaving } = get()
+    if (!playerState || isSaving) return
+
+    set({ isSaving: true, errorMessage: '' })
+    try {
+      const nextState = await acceptBounty(playerState.player.id, bountyId)
+      set({ playerState: nextState })
+    } catch (error) {
+      set({ errorMessage: toPlayerErrorMessage(error, '接取悬赏失败') })
+    } finally {
+      set({ isSaving: false })
+    }
+  },
+
+  claimPlayerBounty: async (bountyId) => {
+    const { playerState, isSaving } = get()
+    if (!playerState || isSaving) return
+
+    set({ isSaving: true, errorMessage: '' })
+    try {
+      const nextState = await claimBounty(playerState.player.id, bountyId)
+      set({ playerState: nextState })
+      useInfoFeedStore.getState().syncChronicle(
+        nextState.storyState?.storyChronicle ?? [],
+        nextState.storyState?.pendingNarratives ?? [],
+      )
+    } catch (error) {
+      set({ errorMessage: toPlayerErrorMessage(error, '交付悬赏失败') })
+    } finally {
+      set({ isSaving: false })
+    }
+  },
+
+  hatchPlayerPet: async () => {
+    const { playerState, isSaving } = get()
+    if (!playerState || isSaving) return null
+
+    set({ isSaving: true, errorMessage: '' })
+    try {
+      const data = await hatchPet(playerState.player.id)
+      const rarityLabels: Record<string, string> = {
+        divine: '绝世神宠',
+        mutated: '变异灵宠',
+        rare: '极珍灵宠',
+        strange: '极奇灵宠',
+      }
+      const subtitleLabels: Record<string, string> = {
+        divine: '天降祥瑞，七彩神光！',
+        mutated: '雷劫洗礼，造化变异！',
+        rare: '山泽灵秀，珍禽异兽！',
+        strange: '行迹诡秘，奇趣横生！',
+      }
+      set({
+        playerState: data.fullState,
+        adrenalineEvent: {
+          type: 'pet',
+          title: `【 ${rarityLabels[data.newPet.rarity] || '奇妙灵宠'} 降 世 ！】`,
+          subtitle: subtitleLabels[data.newPet.rarity] || '天生异象，造化灵动！',
+          name: data.newPet.name,
+          rarity: data.newPet.rarity,
+          skills: data.newPet.skills,
+          narrative: `🎉 恭喜！你孵化出了一只${rarityLabels[data.newPet.rarity] || '奇妙灵宠'}「${data.newPet.name}」，其福缘深厚，当场顿悟技能：《${data.newPet.skills.join('》、《')}》！`
+        }
+      })
+      useInfoFeedStore.getState().syncChronicle(
+        data.fullState.storyState?.storyChronicle ?? [],
+        data.fullState.storyState?.pendingNarratives ?? [],
+      )
+      return data.newPet
+    } catch (error) {
+      set({ errorMessage: toPlayerErrorMessage(error, '孵化灵宠失败') })
+      return null
+    } finally {
+      set({ isSaving: false })
+    }
+  },
+
+  mutatePlayerPet: async (petId) => {
+    const { playerState, isSaving } = get()
+    if (!playerState || isSaving) return null
+
+    set({ isSaving: true, errorMessage: '' })
+    try {
+      const data = await mutatePet(playerState.player.id, petId)
+      set({ playerState: data.fullState })
+      if (data.mutateSuccess) {
+        set({
+          adrenalineEvent: {
+            type: 'mutate',
+            title: '【 灵 宠 逆 天 变 异 ！】',
+            subtitle: '九重雷劫，脱胎换骨！',
+            name: data.pet.name,
+            rarity: data.pet.rarity,
+            skills: data.pet.skills,
+            narrative: data.narrative,
+          }
+        })
+      }
+      useInfoFeedStore.getState().syncChronicle(
+        data.fullState.storyState?.storyChronicle ?? [],
+        data.fullState.storyState?.pendingNarratives ?? [],
+      )
+      return data
+    } catch (error) {
+      set({ errorMessage: toPlayerErrorMessage(error, '变异进化失败') })
+      return null
+    } finally {
+      set({ isSaving: false })
+    }
+  },
+
+  activatePlayerPet: async (petId) => {
+    const { playerState, isSaving } = get()
+    if (!playerState || isSaving) return
+
+    set({ isSaving: true, errorMessage: '' })
+    try {
+      const nextState = await activatePet(playerState.player.id, petId)
+      set({ playerState: nextState })
+    } catch (error) {
+      set({ errorMessage: toPlayerErrorMessage(error, '激活出战失败') })
+    } finally {
+      set({ isSaving: false })
+    }
+  },
+
   clearSession: () => {
     stopHarvestLoop()
     clearAllLocalGameProgress()
@@ -475,10 +763,6 @@ export const useGameSessionStore = create<GameSessionStore>((set, get) => ({
       lastBattleResult: null,
       lastOpponentName: null,
       errorMessage: '',
-      inventoryOpen: false,
-      inventoryUnread: false,
-      lootFloat: null,
-      harvestFloat: null,
       afkTickInFlight: false,
       settingsOpen: false,
       mapTravelOpen: false,

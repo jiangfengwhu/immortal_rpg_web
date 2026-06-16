@@ -1,0 +1,133 @@
+/* 三栏布局 · 水墨山水底 */
+.game-shell {
+  display: grid;
+  grid-template-rows: var(--topbar-h) 1fr;
+  grid-template-columns: var(--sidebar-w) minmax(0, 1fr) var(--right-w);
+  grid-template-areas:
+    'topbar topbar topbar'
+    'left center right';
+  height: 100dvh;
+  gap: 0;
+  background-color: var(--ink-void);
+  background-image:
+    radial-gradient(ellipse 90% 60% at 50% 110%, rgba(74, 104, 116, 0.08) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 50% at 20% 80%, rgba(168, 163, 154, 0.04) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 85% 20%, rgba(106, 136, 148, 0.05) 0%, transparent 45%),
+    linear-gradient(175deg, var(--ink-void) 0%, var(--ink-deep) 45%, var(--ink-base) 100%);
+  position: relative;
+}
+
+.game-shell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: 280px 280px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.game-shell::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 35%;
+  background:
+    linear-gradient(180deg, transparent 0%, rgba(20, 19, 18, 0.4) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 200' preserveAspectRatio='none'%3E%3Cpath d='M0,200 L0,120 Q200,80 400,110 T800,90 T1200,130 L1200,200 Z' fill='%23a8a39a' opacity='0.04'/%3E%3Cpath d='M0,200 L0,150 Q300,100 600,140 T1200,110 L1200,200 Z' fill='%238a8498' opacity='0.03'/%3E%3C/svg%3E");
+  background-size: 100% 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.game-shell > * {
+  position: relative;
+  z-index: 1;
+}
+
+.game-shell__sidebar {
+  grid-area: left;
+  display: flex;
+  flex-direction: column;
+  gap: var(--panel-gap);
+  padding: var(--space-sm) var(--space-sm) var(--space-sm) var(--space-md);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.game-shell__main {
+  grid-area: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--panel-gap);
+  padding: var(--space-sm) var(--space-xs);
+  min-height: 0;
+  min-width: 0;
+}
+
+.game-shell__right {
+  grid-area: right;
+  padding: var(--space-sm) var(--space-md) var(--space-sm) var(--space-sm);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.scene-viewport {
+  flex: 1.15;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+}
+
+.decision-dock {
+  flex: 1;
+  min-height: 200px;
+  max-height: 48%;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 1100px) {
+  .game-shell {
+    grid-template-columns: 240px minmax(0, 1fr) 260px;
+  }
+}
+
+@media (max-width: 900px) {
+  .game-shell {
+    grid-template-rows: var(--topbar-h) auto 1fr auto;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      'topbar topbar'
+      'left right'
+      'center center'
+      'dock dock';
+    overflow-y: auto;
+    height: auto;
+    min-height: 100dvh;
+  }
+
+  .game-shell__sidebar { grid-area: left; }
+  .game-shell__right { grid-area: right; }
+  .game-shell__main {
+    grid-area: center;
+    flex-direction: column;
+  }
+
+  .scene-viewport { flex: none; min-height: 240px; }
+  .decision-dock { flex: none; max-height: none; min-height: 220px; }
+}
+
+@media (max-width: 600px) {
+  .game-shell {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'topbar'
+      'center'
+      'dock'
+      'left'
+      'right';
+  }
+}

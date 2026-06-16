@@ -39,6 +39,3 @@ export type TimelineFeedEntry = {
   seq: number
   harvestTotals?: HarvestLootTotals
 }
-
-/** @deprecated 使用 TimelineFeedEntry */
-export type ActivityFeedEntry = TimelineFeedEntry

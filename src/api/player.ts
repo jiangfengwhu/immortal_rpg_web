@@ -42,6 +42,8 @@ export type PlayerFullState = {
       wisdom: number
       mind: number
     }
+    pets?: PetState[]
+    spells?: string[]
   }
   quest: QuestGuide
   storyState: StoryState
@@ -79,6 +81,7 @@ export type BattleResult = {
   realmUp?: boolean
   bossName: string
   stageName: string
+  newSpell?: string
 }
 
 type ApiError = { error?: string }
@@ -140,6 +143,7 @@ export type AdvanceJourneyResult = {
   leveledUp?: boolean
   realmUp?: boolean
   maxStage?: boolean
+  newSpell?: string
 }
 
 export async function startBattle(playerId: string) {
@@ -166,4 +170,15 @@ export async function advanceQuest(playerId: string) {
     throw new Error(data.error ?? `启程失败 (${response.status})`)
   }
   return data
+}
+
+export type PetRarity = 'divine' | 'mutated' | 'rare' | 'strange'
+
+export type PetState = {
+  id: string
+  name: string
+  rarity: PetRarity
+  level: number
+  skills: string[]
+  isActive: boolean
 }

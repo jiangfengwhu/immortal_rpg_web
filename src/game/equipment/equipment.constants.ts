@@ -13,32 +13,6 @@ export const EQUIPMENT_SLOT_LABELS: Record<EquipmentSlot, string> = {
   material: '材料',
 }
 
-/** 背包面板展示顺序（与用户设定一致） */
-export const EQUIPMENT_SLOT_ORDER: EquipmentSlot[] = [
-  'weapon',
-  'top',
-  'bottom',
-  'shoes',
-  'ring',
-  'necklace',
-  'bracer',
-  'hat',
-  'belt',
-]
-
-/** 纸娃娃网格区域名 — 与 global.css `.inventory-equip-grid` 的 grid-template-areas 对应；裤/履在 feet 行内并排 */
-export const EQUIPMENT_SLOT_GRID_AREA: Record<EquipmentSlot, string> = {
-  hat: 'hat',
-  weapon: 'weapon',
-  necklace: 'necklace',
-  bracer: 'bracer',
-  ring: 'ring',
-  belt: 'belt',
-  top: 'top',
-  bottom: 'feet',
-  shoes: 'feet',
-}
-
 export const RARITY_LABELS: Record<EquipmentRarity, string> = {
   common: '普通',
   rare: '稀有',

@@ -1,33 +1,46 @@
 import { useState } from 'react'
 
-type CharacterPanelTab = 'combat' | 'talent' | 'resist'
+type CharacterPanelTab = 'bag' | 'combat' | 'talent' | 'resist' | 'pets' | 'spells'
 
 type CharacterPanelTabsProps = {
+  bag: React.ReactNode
   combat: React.ReactNode
   talent: React.ReactNode
   resist: React.ReactNode
+  pets: React.ReactNode
+  spells: React.ReactNode
 }
 
 const TAB_LABELS: Record<CharacterPanelTab, string> = {
-  combat: '战体',
-  talent: '天赋',
+  bag: '行囊',
+  combat: '属性',
+  talent: '加点',
   resist: '法抗',
+  pets: '灵宠',
+  spells: '绝学',
 }
 
-const TAB_ORDER: CharacterPanelTab[] = ['combat', 'talent', 'resist']
+const TAB_ORDER: CharacterPanelTab[] = ['bag', 'combat', 'talent', 'resist', 'pets', 'spells']
 
-export function CharacterPanelTabs({ combat, talent, resist }: CharacterPanelTabsProps) {
-  const [activeTab, setActiveTab] = useState<CharacterPanelTab>('combat')
+export function CharacterPanelTabs({ bag, combat, talent, resist, pets, spells }: CharacterPanelTabsProps) {
+  const [activeTab, setActiveTab] = useState<CharacterPanelTab>('bag')
 
   const panels: Record<CharacterPanelTab, React.ReactNode> = {
+    bag,
     combat,
     talent,
     resist,
+    pets,
+    spells,
   }
 
   return (
     <div className="character-panel__tabs">
-      <div className="character-panel__tab-list" role="tablist" aria-label="角色信息">
+      <div
+        className="character-panel__tab-list"
+        role="tablist"
+        aria-label="角色信息"
+      >
         {TAB_ORDER.map((tab) => (
           <button
             key={tab}
@@ -51,3 +64,4 @@ export function CharacterPanelTabs({ combat, talent, resist }: CharacterPanelTab
     </div>
   )
 }
+

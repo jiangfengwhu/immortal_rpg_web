@@ -1,25 +1,14 @@
-import { AFK_FEATURE_LABELS } from '../quest/story.constants'
 
 export const INTERACTION_ACTION_TEXT: Record<string, string> = {
-  go_yard: '你推开木门，踏入小院。',
-  talk_grandpa: '你走到爷爷身旁，听他咳嗽着说话。',
-  go_herb_field: '你往村东药田走去。',
-  go_bamboo: '你往后山竹林行去。',
-  go_bamboo_deep: '你深入竹林，雾色渐浓。',
-  go_stone_bridge: '你沿溪水前往村口石桥。',
-  fight_boar: '变异野猪从雾中冲出，你握紧兵器。',
-  prepare_departure: '你开始整理行装，准备离村。',
-}
-
-export function afkStatusText(feature: string): string {
-  switch (feature) {
-    case 'AFK_HERB_FIELD':
-      return '正在药田采药…'
-    case 'AFK_BAMBOO_HUNT':
-      return '正在竹林历练…'
-    default:
-      return `正在${AFK_FEATURE_LABELS[feature] ?? '忙碌'}…`
-  }
+  go_yard: '你回到自家小院。',
+  talk_grandpa: '你走向爷爷，听他的嘱托。',
+  go_herb_field: '你往村东药田行去。',
+  go_bamboo: '你穿过竹篱，走向后山竹林。',
+  go_stone_bridge: '你沿着发黑的溪流，走向村口石桥。',
+  gather_withered_herb: '你俯身在田垄间，细心掘起一株枯萎发黑的草药。',
+  gather_corrupted_stone: '你俯身拾起散落的煞气碎石，触手冰冷刺骨。',
+  fight_boar: '你深吸一口气，迎战发狂的变异野猪！',
+  prepare_departure: '你开始整理行装，向爷爷磕头告别，准备离村。',
 }
 
 export const BATTLE_STATUS_TEXT = '正在与敌手交锋…'

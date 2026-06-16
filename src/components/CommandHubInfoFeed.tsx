@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 
 import { buildInfoFeed } from '../game/infoFeed/buildInfoFeed'
 import { findActiveHarvestEntry } from '../game/harvest/harvestSession'
@@ -10,6 +10,36 @@ type CommandHubInfoFeedProps = {
   timeline: TimelineFeedEntry[]
   objectives: string[]
   onStopHarvest?: (sessionId: string) => void
+}
+
+function getItemCategory(kind: string): 'world' | 'self' | 'system' {
+  switch (kind) {
+    case 'action':
+      return 'self'
+    case 'narrative':
+    case 'dialogue':
+    case 'focus':
+      return 'world'
+    default:
+      return 'system'
+  }
+}
+
+function getBadgeMeta(kind: string): { label: string; tone: string } {
+  switch (kind) {
+    case 'dialogue':
+      return { label: '对话', tone: 'dialogue' }
+    case 'narrative':
+      return { label: '叙事', tone: 'narrative' }
+    case 'focus':
+      return { label: '目标', tone: 'focus' }
+    case 'action':
+      return { label: '自己', tone: 'self' }
+    case 'harvest':
+      return { label: '挂机', tone: 'self' }
+    default:
+      return { label: '系统', tone: 'system' }
+  }
 }
 
 function itemClassName(item: InfoFeedItem): string {
@@ -53,7 +83,7 @@ function HarvestFeedItem({
 }) {
   if (item.active) {
     return (
-      <p className={itemClassName(item)}>
+      <div className="info-feed__harvest-wrapper">
         <span className="info-feed__harvest-row">
           <span className="info-feed__pulse" aria-hidden />
           <span className="info-feed__harvest-label">采药中</span>
@@ -71,15 +101,11 @@ function HarvestFeedItem({
             {PLAYER_COPY.harvestStop}
           </button>
         )}
-      </p>
+      </div>
     )
   }
 
-  return (
-    <p className={itemClassName(item)}>
-      <FeedItemText item={item} />
-    </p>
-  )
+  return <FeedItemText item={item} />
 }
 
 function InfoFeedItemView({
@@ -89,29 +115,57 @@ function InfoFeedItemView({
   item: InfoFeedItem
   onStopHarvest?: (sessionId: string) => void
 }) {
-  if (item.kind === 'harvest') {
-    return <HarvestFeedItem item={item} onStopHarvest={onStopHarvest} />
-  }
+  const category = getItemCategory(item.kind)
+  const badge = getBadgeMeta(item.kind)
 
-  if (item.kind === 'status' && item.active) {
-    return (
-      <p className={itemClassName(item)}>
+  const badgeEl = (
+    <span className={`info-feed__badge info-feed__badge--${badge.tone}`}>
+      {badge.label}
+    </span>
+  )
+
+  let contentEl: React.ReactNode
+
+  if (item.kind === 'harvest') {
+    contentEl = <HarvestFeedItem item={item} onStopHarvest={onStopHarvest} />
+  } else if (item.kind === 'status' && item.active) {
+    contentEl = (
+      <div className="info-feed__status-row">
         <span className="info-feed__pulse" aria-hidden />
         <FeedItemText item={item} />
-      </p>
+      </div>
     )
+  } else {
+    contentEl = <FeedItemText item={item} />
   }
 
+  const rowKindClass =
+    item.kind === 'focus'
+      ? 'info-feed__row--focus'
+      : item.kind === 'dialogue'
+        ? 'info-feed__row--dialogue'
+        : item.kind === 'narrative'
+          ? 'info-feed__row--narrative'
+          : ''
+
+  const moodClass = item.mood ? `info-feed__row--mood-${item.mood}` : ''
+
   return (
-    <p className={itemClassName(item)}>
-      <FeedItemText item={item} />
-    </p>
+    <div
+      className={`info-feed__row info-feed__row--${category} ${rowKindClass} ${moodClass} ${item.tone === 'warn' ? 'info-feed__row--warn' : ''} ${item.mood === 'danger' ? 'info-feed__row--danger' : ''}`}
+    >
+      {badgeEl}
+      <div className={`info-feed__row-content ${itemClassName(item)}`}>
+        {contentEl}
+      </div>
+    </div>
   )
 }
 
 export function CommandHubInfoFeed(props: CommandHubInfoFeedProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const activeHarvest = findActiveHarvestEntry(props.timeline)
+  const [activeTab, setActiveTab] = useState<'all' | 'world' | 'self' | 'system'>('all')
 
   const items = useMemo(
     () =>
@@ -122,31 +176,77 @@ export function CommandHubInfoFeed(props: CommandHubInfoFeedProps) {
     [props.timeline, props.objectives],
   )
 
+  const filteredItems = useMemo(() => {
+    if (activeTab === 'all') return items
+    return items.filter((item) => getItemCategory(item.kind) === activeTab)
+  }, [items, activeTab])
+
   useLayoutEffect(() => {
     const el = scrollRef.current
     if (!el) return
     el.scrollTop = el.scrollHeight
-  }, [items.length, props.timeline.length, activeHarvest?.harvestTotals, activeHarvest?.active])
+  }, [filteredItems.length, props.timeline.length, activeHarvest?.harvestTotals, activeHarvest?.active])
 
-  const isEmpty = items.length === 0
+  const isEmpty = filteredItems.length === 0
 
   return (
-    <div
-      ref={scrollRef}
-      className={`info-feed${isEmpty ? ' info-feed--empty' : ''}`}
-      aria-label={PLAYER_COPY.infoFeedLabel}
-    >
-      {isEmpty ? (
-        <p className="info-feed__empty">{PLAYER_COPY.chronicleEmpty}</p>
-      ) : (
-        items.map((item) => (
-          <InfoFeedItemView
-            key={item.id}
-            item={item}
-            onStopHarvest={item.active ? props.onStopHarvest : undefined}
-          />
-        ))
-      )}
+    <div className="info-feed-container">
+      <div className="info-feed__tabs" role="tablist" aria-label="信息流过滤">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'all'}
+          className={`info-feed__tab ${activeTab === 'all' ? 'info-feed__tab--active' : ''}`}
+          onClick={() => setActiveTab('all')}
+        >
+          全部
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'world'}
+          className={`info-feed__tab ${activeTab === 'world' ? 'info-feed__tab--active' : ''}`}
+          onClick={() => setActiveTab('world')}
+        >
+          世界
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'self'}
+          className={`info-feed__tab ${activeTab === 'self' ? 'info-feed__tab--active' : ''}`}
+          onClick={() => setActiveTab('self')}
+        >
+          自己
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'system'}
+          className={`info-feed__tab ${activeTab === 'system' ? 'info-feed__tab--active' : ''}`}
+          onClick={() => setActiveTab('system')}
+        >
+          系统
+        </button>
+      </div>
+
+      <div
+        ref={scrollRef}
+        className={`info-feed${isEmpty ? ' info-feed--empty' : ''}`}
+        aria-label={PLAYER_COPY.infoFeedLabel}
+      >
+        {isEmpty ? (
+          <p className="info-feed__empty">{PLAYER_COPY.chronicleEmpty}</p>
+        ) : (
+          filteredItems.map((item) => (
+            <InfoFeedItemView
+              key={item.id}
+              item={item}
+              onStopHarvest={item.active ? props.onStopHarvest : undefined}
+            />
+          ))
+        )}
+      </div>
     </div>
   )
 }

@@ -14,9 +14,10 @@ export function PlayerBattleSync() {
   const syncBattleReward = useBattleStore((state) => state.syncBattleReward)
 
   useEffect(() => {
-    if (playerState) {
-      syncPlayerUnit()
-    }
+    if (!playerState) return
+    const phase = useBattleStore.getState().phase
+    if (phase !== 'ready') return
+    syncPlayerUnit()
   }, [playerState, syncPlayerUnit])
 
   useEffect(() => {

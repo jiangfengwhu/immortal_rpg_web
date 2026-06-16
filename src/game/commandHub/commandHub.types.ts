@@ -3,6 +3,8 @@ export type CommandHubActionKind =
   | 'story_interaction'
   | 'battle'
   | 'afk_claim'
+  | 'wild_battle'
+  | 'adventure_choice'
 
 export type CommandHubActionVariant = 'primary' | 'choice' | 'explore' | 'battle' | 'utility'
 
@@ -18,13 +20,4 @@ export type CommandHubAction = {
   choiceId?: string
   interactionKey?: string
   afkFeature?: string
-}
-
-export type CommandHubStatus = {
-  eyebrow: string
-  title: string
-  location?: string
-  sceneText: string
-  focusHint?: string
-  dangerMood?: boolean
 }

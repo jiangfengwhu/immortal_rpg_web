@@ -29,7 +29,3 @@ export function effectiveStackCount(item: Pick<Equipment, 'name' | 'stackCount'>
 export function itemDisplayName(item: Pick<Equipment, 'name'>): string {
   return materialBaseName(item.name ?? '') || item.name || '未知物品'
 }
-
-export function isStackableItem(item: Pick<Equipment, 'slot'>): boolean {
-  return item.slot === 'material'
-}

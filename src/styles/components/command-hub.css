@@ -1,0 +1,162 @@
+.command-hub {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--ink-wash);
+  border: 1px solid var(--ink-stroke);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
+  overflow: hidden;
+  position: relative;
+}
+
+.command-hub::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 0%, rgba(232, 223, 208, 0.03) 0%, transparent 60%);
+}
+
+.command-hub__battle-strip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-lg);
+  background: rgba(168, 60, 50, 0.06);
+  border-bottom: 1px solid rgba(168, 60, 50, 0.12);
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  font-family: var(--font-serif);
+}
+
+.command-hub__result-badge {
+  padding: 2px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-family: var(--font-serif);
+}
+
+.command-hub__result-badge--win {
+  background: rgba(106, 138, 120, 0.12);
+  border: 1px solid rgba(106, 138, 120, 0.3);
+  color: var(--emerald);
+}
+
+.command-hub__result-badge--lose {
+  background: rgba(168, 60, 50, 0.1);
+  border: 1px solid rgba(168, 60, 50, 0.3);
+  color: var(--cinnabar-light);
+}
+
+.command-hub__panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: var(--space-md);
+  gap: var(--space-md);
+  position: relative;
+  z-index: 1;
+}
+
+.command-hub__actions {
+  flex-shrink: 0;
+  border-top: 1px solid var(--ink-stroke);
+  padding-top: var(--space-md);
+  position: relative;
+}
+
+.command-hub__actions::before {
+  content: '可执行操作';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+  background: var(--ink-base);
+  padding: 0 8px;
+  font-family: var(--font-serif);
+}
+
+.command-hub__actions-label {
+  display: none;
+}
+
+.command-hub__actions-deck {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  justify-content: center;
+}
+
+.command-hub__actions-deck .command-hub__btn--choice {
+  flex: 1 1 calc(50% - var(--space-sm));
+  min-width: 140px;
+}
+
+.command-hub__actions-deck .command-hub__btn--battle {
+  flex: 1 1 100%;
+  min-height: 52px;
+}
+
+.command-hub__actions-deck .command-hub__btn--utility {
+  flex: 1 1 calc(33% - var(--space-sm));
+  min-width: 100px;
+}
+
+.adventure-overlay {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.adventure-card {
+  position: relative;
+  padding: var(--space-lg);
+  border-radius: var(--radius-md);
+  background: rgba(138, 132, 152, 0.06);
+  border: 1px solid rgba(138, 132, 152, 0.2);
+  overflow: hidden;
+}
+
+.adventure-card__glow {
+  display: none;
+}
+
+.adventure-card__tag {
+  display: inline-block;
+  font-size: 0.68rem;
+  letter-spacing: 0.15em;
+  color: var(--mystic);
+  border: 1px solid rgba(138, 132, 152, 0.3);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-xs);
+  font-family: var(--font-serif);
+}
+
+.adventure-card__title {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  color: var(--gold-300);
+}
+
+.adventure-card__desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.65;
+  margin-bottom: var(--space-sm);
+}
+
+.adventure-card__prompt {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  letter-spacing: 0.12em;
+  font-family: var(--font-serif);
+}

@@ -1,0 +1,55 @@
+.gameplay-toast-stack {
+  position: fixed;
+  bottom: var(--space-xl);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5000;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  pointer-events: none;
+  width: min(420px, calc(100% - 32px));
+}
+
+.gameplay-toast {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  background: rgba(14, 20, 28, 0.95);
+  border: 1px solid var(--ink-border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  pointer-events: auto;
+  animation: toast-in 0.3s var(--ease-out);
+}
+
+.gameplay-toast--success {
+  border-color: rgba(52, 211, 153, 0.35);
+  color: var(--emerald);
+}
+
+.gameplay-toast--warn {
+  border-color: rgba(245, 158, 11, 0.35);
+  color: var(--gold-300);
+}
+
+.gameplay-toast--danger {
+  border-color: rgba(220, 74, 58, 0.35);
+  color: #fca5a5;
+}
+
+.gameplay-toast--persistent {
+  border-color: var(--gold-500);
+}
+
+.gameplay-toast__pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gold-400);
+  animation: pulse-dot 1s ease-in-out infinite;
+  flex-shrink: 0;
+}

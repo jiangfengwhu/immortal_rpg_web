@@ -15,13 +15,6 @@ export function mergeHarvestLoot(
   return next
 }
 
-export function formatHarvestTotals(totals: HarvestLootTotals): string {
-  const parts = Object.entries(totals)
-    .filter(([, count]) => count > 0)
-    .map(([name, count]) => (count > 1 ? `${name}×${count}` : name))
-  return parts.join(' · ')
-}
-
 export function hasHarvestTotals(totals: HarvestLootTotals): boolean {
   return Object.values(totals).some((count) => count > 0)
 }

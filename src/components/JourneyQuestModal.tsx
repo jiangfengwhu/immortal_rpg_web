@@ -38,6 +38,18 @@ export function JourneyQuestModal() {
     ? CHEST_TYPE_LABELS[quest.rewards.chestType] ?? quest.rewards.chestType
     : null
 
+  // 解析新任务系统中的特殊奖励
+  const itemsRewarded = (quest.rewards?.items ?? []).map((id) => STORY_ITEM_LABELS[id] ?? id)
+  const titleRewarded = quest.rewards?.title
+    ? quest.rewards.title === 'TITLE_NOVICE' ? '初出茅庐' : quest.rewards.title
+    : null
+  const featuresRewarded = (quest.rewards?.features ?? []).map((f) => {
+    if (f === 'AFK_HERB_FIELD') return '药田采集'
+    if (f === 'AFK_BAMBOO_HUNT') return '竹林历练'
+    if (f === 'WORLD_MAP') return '世界地图'
+    return f
+  })
+
   return (
     <div
       className="journey-modal-overlay"
@@ -116,14 +128,19 @@ export function JourneyQuestModal() {
               <p>
                 修为 +{quest.rewards.exp} · 金币 +{quest.rewards.gold}
                 {chestLabel ? ` · ${chestLabel}` : ''}
+                {itemsRewarded.length > 0 ? ` · 获得物品：${itemsRewarded.join('、')}` : ''}
+                {titleRewarded ? ` · 获得称号：${titleRewarded}` : ''}
+                {featuresRewarded.length > 0 ? ` · 解锁功能：${featuresRewarded.join('、')}` : ''}
               </p>
             </section>
           )}
 
           {(storyState?.unlockedFeatures?.length ?? 0) > 0 && (
             <p className="journey-modal__features">
-              {storyState?.unlockedFeatures?.includes('AFK_HERB_FIELD') && '· 药田采集'}
+              已解锁功能：
+              {storyState?.unlockedFeatures?.includes('AFK_HERB_FIELD') && ' 药田采集'}
               {storyState?.unlockedFeatures?.includes('AFK_BAMBOO_HUNT') && ' · 竹林历练'}
+              {storyState?.unlockedFeatures?.includes('WORLD_MAP') && ' · 世界地图'}
             </p>
           )}
         </div>

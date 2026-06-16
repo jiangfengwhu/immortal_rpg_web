@@ -1,0 +1,288 @@
+/* 通用模态遮罩 */
+.journey-modal-overlay,
+.map-teleport-overlay,
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 8, 12, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: var(--space-lg);
+  animation: feed-fresh-in 0.25s var(--ease-out);
+}
+
+/* 旅程详情 */
+.journey-modal {
+  width: min(560px, 100%);
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(165deg, rgba(24, 32, 42, 0.98) 0%, rgba(12, 18, 26, 0.99) 100%);
+  border: 1px solid var(--ink-border-strong);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-panel), 0 16px 48px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.journey-modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--ink-border);
+  flex-shrink: 0;
+}
+
+.journey-modal__eyebrow {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.journey-modal__title {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  color: var(--gold-300);
+}
+
+.journey-modal__meta {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.journey-modal__close {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--ink-border);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.journey-modal__close:hover {
+  color: var(--text-primary);
+  border-color: var(--ink-border-strong);
+}
+
+.journey-modal__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-lg);
+}
+
+.journey-modal__section {
+  margin-bottom: var(--space-lg);
+}
+
+.journey-modal__section h4 {
+  font-family: var(--font-serif);
+  font-size: 0.88rem;
+  color: var(--jade-300);
+  margin-bottom: var(--space-sm);
+}
+
+.journey-modal__narrative {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+
+.journey-modal__features {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.journey-modal__footer {
+  padding: var(--space-md) var(--space-lg);
+  border-top: 1px solid var(--ink-border);
+  flex-shrink: 0;
+}
+
+.journey-modal__hint {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-bottom: var(--space-sm);
+  text-align: center;
+}
+
+.journey-modal__footer-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.journey-modal__advance {
+  padding: 8px 24px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--gold-500);
+  background: rgba(201, 164, 92, 0.12);
+  color: var(--gold-300);
+  font-weight: 600;
+}
+
+.journey-modal__advance:hover {
+  background: rgba(201, 164, 92, 0.2);
+  box-shadow: var(--shadow-glow-gold);
+}
+
+/* 地图传送 */
+.map-teleport-modal {
+  position: relative;
+  width: min(400px, 100%);
+  padding: var(--space-xl);
+  background: linear-gradient(165deg, rgba(24, 32, 42, 0.98) 0%, rgba(12, 18, 26, 0.99) 100%);
+  border: 1px solid var(--ink-border-strong);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-panel);
+}
+
+.map-teleport-modal__close {
+  position: absolute;
+  top: var(--space-md);
+  right: var(--space-md);
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--ink-border);
+  color: var(--text-muted);
+}
+
+.map-teleport-modal__row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg);
+  padding-top: var(--space-md);
+}
+
+.map-teleport-modal__name {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  color: var(--gold-300);
+  text-align: center;
+}
+
+.map-teleport-modal__btn {
+  padding: 10px 32px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--jade-400);
+  background: rgba(45, 212, 191, 0.12);
+  color: var(--jade-300);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.map-teleport-modal__btn:hover:not(:disabled) {
+  background: rgba(45, 212, 191, 0.22);
+  box-shadow: var(--shadow-glow-jade);
+}
+
+.map-teleport-modal__btn:disabled {
+  opacity: 0.4;
+}
+
+/* 设置面板 */
+.settings-panel {
+  width: min(420px, 100%);
+  background: linear-gradient(165deg, rgba(24, 32, 42, 0.98) 0%, rgba(12, 18, 26, 0.99) 100%);
+  border: 1px solid var(--ink-border-strong);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-panel);
+  overflow: hidden;
+}
+
+.settings-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--ink-border);
+}
+
+.settings-panel__eyebrow {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.settings-panel__header h2 {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  color: var(--gold-300);
+}
+
+.settings-panel__close {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--ink-border);
+  color: var(--text-muted);
+}
+
+.settings-panel__section {
+  padding: var(--space-lg);
+}
+
+.settings-panel__section-title {
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.settings-panel__hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: var(--space-md);
+}
+
+.settings-panel__logout {
+  width: 100%;
+  padding: 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(220, 74, 58, 0.35);
+  color: #fca5a5;
+  background: rgba(220, 74, 58, 0.08);
+  font-size: 0.85rem;
+}
+
+.settings-panel__logout:hover {
+  background: rgba(220, 74, 58, 0.15);
+}
+
+.logout-confirm__text {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-md);
+}
+
+.logout-confirm__actions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.logout-confirm__btn {
+  flex: 1;
+  padding: 8px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--ink-border);
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.logout-confirm__btn--danger {
+  border-color: rgba(220, 74, 58, 0.4);
+  color: #fca5a5;
+  background: rgba(220, 74, 58, 0.1);
+}

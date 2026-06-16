@@ -13,6 +13,27 @@ export type StoryChoice = {
   hint?: string
 }
 
+export type ActiveAdventureState = {
+  adventureId: string
+  title: string
+  description: string
+  choices: StoryChoice[]
+  triggerTime: number
+}
+
+export type BountyQuestState = {
+  id: string
+  title: string
+  description: string
+  targetType: 'kill' | 'gather'
+  targetId: string
+  required: number
+  current: number
+  expReward: number
+  goldReward: number
+  status: 'available' | 'active' | 'completed' | 'claimed'
+}
+
 export type StoryState = {
   activeQuestId?: string
   questStatuses?: Record<string, StoryQuestStatus>
@@ -21,6 +42,8 @@ export type StoryState = {
   unlockedFeatures?: string[]
   pendingNarratives?: NarrativeBeat[]
   storyChronicle?: NarrativeBeat[]
+  activeAdventure?: ActiveAdventureState | null
+  bounties?: BountyQuestState[]
 }
 
 export type QuestEventResponse = {

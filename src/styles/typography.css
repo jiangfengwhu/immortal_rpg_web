@@ -1,0 +1,31 @@
+.glow-text--gold {
+  color: var(--gold-300);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  font-family: var(--font-serif);
+}
+
+.glow-text--cyan {
+  color: var(--jade-300);
+  text-shadow: none;
+}
+
+.glow-text--purple {
+  color: var(--mystic);
+  text-shadow: none;
+}
+
+.shimmer-text {
+  color: var(--text-primary);
+  font-family: var(--font-serif);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  opacity: 0.85;
+}
+
+.side-panel__eyebrow {
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  color: var(--text-muted);
+  font-weight: 400;
+  font-family: var(--font-serif);
+}

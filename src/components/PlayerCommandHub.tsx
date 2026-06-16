@@ -17,7 +17,7 @@ import { resolveActiveAfkFeature } from '../game/harvest/harvest.constants'
 import { isHarvestActive } from '../game/harvest/harvestSession'
 import { useHarvestSession } from '../game/harvest/useHarvestSession'
 import { isStoryBattleReady } from '../game/quest/resolveStoryInteractions'
-import { STORY_FEATURE_KEYS, STORY_ITEM_LABELS } from '../game/quest/story.constants'
+import { STORY_FEATURE_KEYS } from '../game/quest/story.constants'
 import { useJourneyQuest } from '../game/quest/useJourneyQuest'
 import { PLAYER_COPY } from '../game/ui/playerCopy'
 import { sanitizePlayerErrorMessage } from '../game/ui/playerError'
@@ -56,6 +56,7 @@ export function PlayerCommandHub() {
   const loadError = useBattleStore((state) => state.loadError)
   const rewardSyncing = useBattleStore((state) => state.rewardSyncing)
   const startBattle = useBattleStore((state) => state.startBattle)
+  const resetBattleArena = useBattleStore((state) => state.resetBattleArena)
 
   const playerState = useGameSessionStore((state) => state.playerState)
   const lastOpponentName = useGameSessionStore((state) => state.lastOpponentName)
@@ -64,6 +65,8 @@ export function PlayerCommandHub() {
   const onboardingStep = useGameSessionStore((state) => state.onboardingStep)
   const startAfkGather = useGameSessionStore((state) => state.startAfkGather)
   const stopAfkGather = useGameSessionStore((state) => state.stopAfkGather)
+  const runWildBattle = useGameSessionStore((state) => state.runWildBattle)
+  const resolveActiveAdventure = useGameSessionStore((state) => state.resolveActiveAdventure)
 
   const feedTimeline = useInfoFeedStore((state) => state.entries)
   const syncChronicle = useInfoFeedStore((state) => state.syncChronicle)
@@ -122,8 +125,14 @@ export function PlayerCommandHub() {
       )
       battleStatusRef.current = null
     }
+    if (phase === 'ready') {
+      const activeStatus = feedTimeline.find((entry) => entry.kind === 'status' && entry.active)
+      if (activeStatus) {
+        settleStatus(activeStatus.id, '', 'success')
+      }
+    }
     prevPhaseRef.current = phase
-  }, [phase, winner, pushStatus, settleStatus])
+  }, [phase, winner, feedTimeline, pushStatus, settleStatus])
 
   useEffect(() => {
     const message = loadError
@@ -151,12 +160,7 @@ export function PlayerCommandHub() {
   const mapPhase = quest.mapPhaseName ?? mapChapter.phaseName
   const questGuide = onboardingStep === 1
   const battleGuide = onboardingStep === 2
-  const storyBattleReady = isStoryBattleReady(storyState)
-  const storyItems = (storyState?.storyItems ?? []).map((id) => ({
-    id,
-    label: STORY_ITEM_LABELS[id] ?? id,
-  }))
-  const hasNoviceTitle = storyState?.unlockedFeatures?.includes(STORY_FEATURE_KEYS.titleNovice)
+  const storyBattleReady = isStoryBattleReady(player, storyState)
 
   const activeAfkFeature = resolveActiveAfkFeature(storyState?.storyFlags, afkFeatures)
 
@@ -174,6 +178,7 @@ export function PlayerCommandHub() {
     phase,
     canStartBattle: canStart,
     battleGuide,
+    activeAdventure: storyState?.activeAdventure,
   })
 
   const handleAction = (action: CommandHubAction) => {
@@ -183,6 +188,16 @@ export function PlayerCommandHub() {
           pushAction(`你选择了「${action.label}」。`)
           void runEvent({ playerId: player.id, type: 'make_choice', choiceId: action.choiceId })
         }
+        break
+      case 'adventure_choice':
+        if (action.choiceId) {
+          pushAction(`面对奇遇，你选择了「${action.label}」。`)
+          void resolveActiveAdventure(action.choiceId)
+        }
+        break
+      case 'wild_battle':
+        pushAction(`你动身前往林间野地，搜寻可与切磋的妖兽。`)
+        void runWildBattle()
         break
       case 'story_interaction': {
         const key = action.interactionKey
@@ -194,11 +209,13 @@ export function PlayerCommandHub() {
         break
       }
       case 'battle':
+        pushAction(`你深吸一口气，上前挑战「${opponent || '强敌'}」。`)
         startBattle()
         break
       case 'afk_claim': {
         const feature = action.afkFeature
         if (!feature) break
+        pushAction(`你动身前往，开始「${action.label}」。`)
         void startAfkGather(feature).then((outcome) => {
           if (!outcome.ok) {
             pushToast(outcome.message, 'warn')
@@ -213,6 +230,8 @@ export function PlayerCommandHub() {
 
   const handleStopHarvest = (_sessionId: string) => {
     const feature = activeAfkFeature ?? STORY_FEATURE_KEYS.afkHerb
+    const label = feature === 'AFK_HERB_FIELD' ? '药田采集' : '竹林历练'
+    pushAction(`你停下了「${label}」，返回院落。`)
     void stopAfkGather(feature).then((outcome) => {
       if (!outcome.ok) {
         pushToast(outcome.message, 'warn')
@@ -224,9 +243,6 @@ export function PlayerCommandHub() {
 
   return (
     <section className="command-hub" aria-label="仙途决策">
-      {lastBattleResult?.won && phase === 'ready' && lastBattleResult.leveledUp && (
-        <p className="command-hub__alert command-hub__alert--level">{PLAYER_COPY.levelUp}</p>
-      )}
 
       {inPerformance && (
         <div className="command-hub__battle-strip" aria-live="polite">
@@ -247,9 +263,19 @@ export function PlayerCommandHub() {
                 type="button"
                 className="command-hub__btn command-hub__btn--ghost command-hub__btn--compact"
                 disabled={rewardSyncing}
-                onClick={startBattle}
+                onClick={() => {
+                  if (storyActive && !storyBattleReady && winner === 'player') {
+                    resetBattleArena()
+                    return
+                  }
+                  startBattle()
+                }}
               >
-                {rewardSyncing ? PLAYER_COPY.battleSettling : PLAYER_COPY.battleAgain}
+                {rewardSyncing
+                  ? PLAYER_COPY.battleSettling
+                  : storyActive && !storyBattleReady && winner === 'player'
+                    ? '继续旅程'
+                    : PLAYER_COPY.battleAgain}
               </button>
             </>
           )}
@@ -257,34 +283,25 @@ export function PlayerCommandHub() {
       )}
 
       <div className="command-hub__panel">
-        <header
-          className={`command-hub__status${questGuide ? ' command-hub__status--guide' : ''}`}
-          data-onboarding-target="journey-quest"
-        >
-          {storyActive && <p className="command-hub__eyebrow">{mapPhase}</p>}
-          <h2 className="command-hub__title">{quest.title}</h2>
-          {mapName && <p className="command-hub__where">{mapName}</p>}
-
-          {storyItems.length > 0 && (
-            <ul className="command-hub__items" aria-label={PLAYER_COPY.storyItems}>
-              {storyItems.map((item) => (
-                <li key={item.id} className="command-hub__item">
-                  {item.label}
-                </li>
-              ))}
-            </ul>
-          )}
-
-          {hasNoviceTitle && (
-            <p className="command-hub__title-badge">{PLAYER_COPY.titleNovice}</p>
-          )}
-        </header>
-
         <CommandHubInfoFeed
           timeline={feedTimeline}
           objectives={objectives}
           onStopHarvest={harvestActive ? handleStopHarvest : undefined}
         />
+
+        {storyState?.activeAdventure && (
+          <div className="adventure-overlay">
+            <div className="adventure-card">
+              <div className="adventure-card__glow" />
+              <div className="adventure-card__header">
+                <span className="adventure-card__tag">仙缘奇遇</span>
+                <h4 className="adventure-card__title">{storyState.activeAdventure.title}</h4>
+              </div>
+              <p className="adventure-card__desc">{storyState.activeAdventure.description}</p>
+              <p className="adventure-card__prompt">—— 请做出你的仙途决断 ——</p>
+            </div>
+          </div>
+        )}
 
         {actions.length > 0 && (
           <div className="command-hub__actions" role="group" aria-label={PLAYER_COPY.commandHubActions}>
@@ -312,17 +329,17 @@ export function PlayerCommandHub() {
                       )}
                     </>
                   ) : action.variant === 'battle' ? (
-                    <>
-                      <span className="command-hub__battle-label">{action.label}</span>
-                      {action.hint && (
-                        <>
-                          <span className="command-hub__btn-sep" aria-hidden>
-                            ·
-                          </span>
-                          <span className="command-hub__battle-foe">{action.hint}</span>
-                        </>
-                      )}
-                    </>
+                    <span className="command-hub__battle-inner">
+                      <span className="command-hub__battle-icon" aria-hidden>
+                        ⚔
+                      </span>
+                      <span className="command-hub__battle-copy">
+                        <span className="command-hub__battle-label">{action.label}</span>
+                        {action.hint && (
+                          <span className="command-hub__battle-foe">对手 · {action.hint}</span>
+                        )}
+                      </span>
+                    </span>
                   ) : (
                     action.label
                   )}

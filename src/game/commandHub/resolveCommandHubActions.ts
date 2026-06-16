@@ -1,8 +1,15 @@
-import type { StoryChoice } from '../quest/story.types'
+import type { StoryChoice, ActiveAdventureState } from '../quest/story.types'
 import { AFK_FEATURE_LABELS } from '../quest/story.constants'
 import { STORY_INTERACTION_LABELS } from '../quest/qingshi.locations'
 import { PLAYER_COPY } from '../ui/playerCopy'
 import type { CommandHubAction } from './commandHub.types'
+
+/** 按钮文案已含对手名时，不再重复显示 hint */
+function opponentHint(label: string, opponent: string): string | undefined {
+  const foe = opponent.trim()
+  if (!foe || label.includes(foe)) return undefined
+  return foe
+}
 
 type ResolveCommandHubInput = {
   questTitle: string
@@ -18,10 +25,26 @@ type ResolveCommandHubInput = {
   phase: string
   canStartBattle: boolean
   battleGuide: boolean
+  activeAdventure?: ActiveAdventureState | null
 }
 
 export function resolveCommandHubActions(input: ResolveCommandHubInput): CommandHubAction[] {
   const actions: CommandHubAction[] = []
+
+  if (input.activeAdventure) {
+    for (const choice of input.activeAdventure.choices) {
+      actions.push({
+        id: `adv_choice_${choice.id}`,
+        kind: 'adventure_choice',
+        label: choice.label,
+        hint: choice.hint,
+        disabled: input.busy,
+        variant: 'choice',
+        choiceId: choice.id,
+      })
+    }
+    return actions
+  }
 
   for (const choice of input.choices) {
     actions.push({
@@ -37,20 +60,23 @@ export function resolveCommandHubActions(input: ResolveCommandHubInput): Command
   if (actions.length > 0) return actions
 
   for (const key of input.interactions) {
+    const isFight = key.startsWith('fight_')
     actions.push({
       id: `interaction_${key}`,
       kind: 'story_interaction',
       label: STORY_INTERACTION_LABELS[key] ?? key,
       disabled: input.busy,
-      variant: key === 'fight_boar' ? 'battle' : 'explore',
+      variant: isFight ? 'battle' : 'explore',
       interactionKey: key,
-      guide: key === 'fight_boar' ? input.battleGuide : undefined,
-      onboardingTarget: key === 'fight_boar' ? 'battle-start' : undefined,
-      hint: key === 'fight_boar' ? input.opponent : undefined,
+      guide: isFight ? input.battleGuide : undefined,
+      onboardingTarget: isFight ? 'battle-start' : undefined,
+      hint: isFight
+        ? opponentHint(STORY_INTERACTION_LABELS[key] ?? key, input.opponent)
+        : undefined,
     })
   }
 
-  const hasFightInteraction = input.interactions.includes('fight_boar')
+  const hasFightInteraction = input.interactions.some((k) => k.startsWith('fight_'))
   const showBattle =
     !hasFightInteraction &&
     input.phase === 'ready' &&
@@ -61,10 +87,20 @@ export function resolveCommandHubActions(input: ResolveCommandHubInput): Command
       id: 'battle',
       kind: 'battle',
       label: PLAYER_COPY.battleStart,
-      hint: input.opponent,
+      hint: opponentHint(PLAYER_COPY.battleStart, input.opponent),
       variant: 'battle',
       guide: input.battleGuide,
       onboardingTarget: 'battle-start',
+    })
+  }
+
+  if (input.phase === 'ready' && !input.activeAfkFeature && !hasFightInteraction) {
+    actions.push({
+      id: 'wild_battle',
+      kind: 'wild_battle',
+      label: '寻敌除妖',
+      hint: '野外历练',
+      variant: 'explore',
     })
   }
 

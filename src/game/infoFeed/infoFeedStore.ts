@@ -126,15 +126,12 @@ function mergeChronicleIntoTimeline(
 
   if (missing.length === 0) return next
 
-  const actionSeqs = next.filter((entry) => entry.kind === 'action').map((entry) => entry.seq)
-  const firstActionSeq = actionSeqs.length > 0 ? Math.min(...actionSeqs) : null
-  let assignSeq =
-    firstActionSeq !== null ? firstActionSeq - missing.length : seqCounter + 1
+  let assignSeq = seqCounter + 1
 
   const additions = missing.map((beat) =>
     narrativeBeatToTimelineEntry(beat, assignSeq++, pendingIds.has(beat.id)),
   )
-  next = [...additions, ...next].sort((a, b) => a.seq - b.seq)
+  next = [...next, ...additions].sort((a, b) => a.seq - b.seq)
   bumpSeqCounter(next)
   return next
 }

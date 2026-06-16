@@ -1,0 +1,229 @@
+.inventory-panel__grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+
+.inventory-slot {
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.inventory-slot--empty {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px dashed rgba(255, 255, 255, 0.06);
+}
+
+.inventory-slot--filled {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1.5px solid var(--rarity-common);
+  cursor: pointer;
+  padding: 0;
+}
+
+.inventory-slot--filled:hover,
+.inventory-slot--active {
+  border-color: var(--gold-500);
+  box-shadow: 0 0 8px var(--gold-glow);
+  transform: scale(1.05);
+  z-index: 1;
+}
+
+.inventory-slot__badge {
+  position: absolute;
+  font-size: 0.58rem;
+  font-weight: 700;
+  padding: 0 3px;
+  border-radius: 2px;
+  line-height: 1.3;
+}
+
+.inventory-slot__badge--stack {
+  bottom: 1px;
+  right: 2px;
+  color: var(--text-primary);
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.inventory-slot__badge--pending {
+  top: 2px;
+  right: 2px;
+  color: var(--gold-300);
+  animation: adventure-pulse 1s infinite alternate;
+}
+
+.inventory-slot__badge--unidentified {
+  top: 2px;
+  left: 2px;
+  color: var(--mystic);
+  background: rgba(167, 139, 250, 0.2);
+}
+
+.inventory-panel__sentinel {
+  height: 1px;
+}
+
+.inventory-panel__loading {
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  padding: var(--space-sm);
+}
+
+/* 装备图标 */
+.equip-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  border-radius: inherit;
+}
+
+.equip-visual--sm { font-size: 0.75rem; }
+.equip-visual--md { font-size: 0.9rem; }
+.equip-visual--lg { font-size: 1.2rem; }
+
+.equip-visual__glyph {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  z-index: 1;
+}
+
+.equip-visual__shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
+  border-radius: inherit;
+}
+
+.inventory-item--rare .equip-visual__glyph { color: var(--rarity-rare); }
+.inventory-item--epic .equip-visual__glyph { color: var(--rarity-epic); }
+.inventory-item--legendary .equip-visual__glyph { color: var(--rarity-legendary); }
+.inventory-item--mythic .equip-visual__glyph { color: var(--rarity-mythic); }
+.inventory-item--common .equip-visual__glyph { color: var(--text-muted); }
+
+.inventory-slot--filled.inventory-item--rare,
+.inventory-item--rare.inventory-slot--filled { border-color: var(--rarity-rare); }
+.inventory-item--epic { border-color: var(--rarity-epic); }
+.inventory-item--legendary { border-color: var(--rarity-legendary); }
+.inventory-item--mythic { border-color: var(--rarity-mythic); }
+
+/* 装备详情浮层 */
+.inventory-detail-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.inventory-detail-bridge {
+  position: absolute;
+  pointer-events: auto;
+}
+
+.inventory-panel__detail {
+  position: absolute;
+  z-index: 101;
+  width: 240px;
+  padding: var(--space-md);
+  background: linear-gradient(165deg, rgba(24, 32, 42, 0.98) 0%, rgba(12, 18, 26, 0.99) 100%);
+  border: 1px solid var(--ink-border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel), 0 8px 32px rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+}
+
+.inventory-panel__detail.inventory-item--rare { border-color: var(--rarity-rare); }
+.inventory-panel__detail.inventory-item--epic { border-color: var(--rarity-epic); }
+.inventory-panel__detail.inventory-item--legendary { border-color: var(--rarity-legendary); }
+.inventory-panel__detail.inventory-item--mythic { border-color: var(--rarity-mythic); }
+
+.inventory-detail__preview {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-sm);
+}
+
+.inventory-detail__rarity {
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+
+.inventory-detail__identified-badge {
+  font-size: 0.62rem;
+  margin-left: 6px;
+  color: var(--emerald);
+}
+
+.inventory-detail__name {
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  margin-bottom: var(--space-xs);
+}
+
+.inventory-detail__lore {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: var(--space-sm);
+  font-style: italic;
+}
+
+.inventory-detail__muted {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: var(--space-sm);
+}
+
+.inventory-detail__base-stats {
+  font-size: 0.75rem;
+  color: var(--jade-300);
+  margin-bottom: var(--space-xs);
+}
+
+.inventory-detail__affixes {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-sm);
+}
+
+.inventory-detail__affixes--hidden {
+  opacity: 0.4;
+  filter: blur(2px);
+}
+
+.inventory-detail__empty {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.inventory-detail__actions {
+  margin-top: var(--space-sm);
+}
+
+.inventory-detail__btn {
+  width: 100%;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+}
+
+.inventory-detail__btn--primary {
+  border: 1px solid rgba(45, 212, 191, 0.4);
+  background: rgba(45, 212, 191, 0.1);
+  color: var(--jade-300);
+}
+
+.inventory-detail__btn--primary:hover:not(:disabled) {
+  background: rgba(45, 212, 191, 0.2);
+}

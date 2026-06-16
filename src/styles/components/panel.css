@@ -1,0 +1,68 @@
+/* 水墨卷轴面板 */
+.side-panel,
+.scroll-panel {
+  background: var(--ink-wash);
+  border: 1px solid var(--ink-stroke);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
+  position: relative;
+  overflow: hidden;
+}
+
+.side-panel::before,
+.scroll-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(232, 223, 208, 0.04) 0%, transparent 50%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)' opacity='0.03'/%3E%3C/svg%3E");
+  background-size: auto, 180px 180px;
+}
+
+.side-panel::after,
+.scroll-panel::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 8%;
+  right: 8%;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(232, 223, 208, 0.1) 30%,
+    rgba(232, 223, 208, 0.15) 50%,
+    rgba(232, 223, 208, 0.1) 70%,
+    transparent
+  );
+}
+
+.scroll-panel__corner {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-color: var(--ink-stroke-strong);
+  border-style: solid;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.scroll-panel__corner--tl { top: 5px; left: 5px; border-width: 1px 0 0 1px; }
+.scroll-panel__corner--tr { top: 5px; right: 5px; border-width: 1px 1px 0 0; }
+.scroll-panel__corner--bl { bottom: 5px; left: 5px; border-width: 0 0 1px 1px; }
+.scroll-panel__corner--br { bottom: 5px; right: 5px; border-width: 0 1px 1px 0; }
+
+.side-rail {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--panel-gap);
+}
+
+.player-workspace {
+  min-height: 0;
+}

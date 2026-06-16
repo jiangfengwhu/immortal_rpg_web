@@ -1,0 +1,110 @@
+.game-topbar {
+  grid-area: topbar;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: 0 var(--space-lg);
+  background: rgba(20, 19, 18, 0.88);
+  border-bottom: 1px solid var(--ink-stroke);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.game-topbar::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(232, 223, 208, 0.12), transparent);
+}
+
+.game-topbar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-shrink: 0;
+}
+
+.game-topbar__logo {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--ink-stroke-strong);
+  object-fit: cover;
+  filter: sepia(0.15) contrast(0.95);
+}
+
+.game-topbar__title {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--paper-white);
+  opacity: 0.92;
+}
+
+.game-topbar__location {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  font-family: var(--font-serif);
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+}
+
+.game-topbar__phase {
+  color: var(--jade-300);
+  font-weight: 400;
+}
+
+.game-topbar__sep {
+  color: var(--text-muted);
+  opacity: 0.4;
+}
+
+.game-topbar__place {
+  color: var(--gold-300);
+  font-weight: 500;
+}
+
+.game-topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-shrink: 0;
+}
+
+.game-topbar__settings {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--ink-stroke);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  transition: all var(--duration-fast) var(--ease-ink);
+}
+
+.game-topbar__settings:hover {
+  border-color: var(--ink-stroke-strong);
+  color: var(--text-primary);
+  background: rgba(232, 223, 208, 0.04);
+}
+
+@media (max-width: 600px) {
+  .game-topbar__location {
+    font-size: 0.78rem;
+  }
+
+  .game-topbar__title {
+    font-size: 0.92rem;
+  }
+}

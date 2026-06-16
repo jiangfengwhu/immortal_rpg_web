@@ -1,5 +1,4 @@
 import type { Equipment, EquipmentStatBonuses, EquippedSummary } from './equipment.types'
-import { normalizeEquipmentSlot } from './equipment.types'
 
 /** 汇总装备加成，与 server battle_resolver.buildPlayerStats 对齐 */
 export function sumEquipmentBonuses(equipped: EquippedSummary): EquipmentStatBonuses {
@@ -67,25 +66,8 @@ function applyItemBonuses(bonuses: EquipmentStatBonuses, item: Equipment) {
   }
 }
 
-export function buildEquippedSummary(inventory: Equipment[]): EquippedSummary {
-  const summary: EquippedSummary = {}
-  for (const item of inventory) {
-    if (!item.equipped) continue
-    const slot = normalizeEquipmentSlot(item.slot)
-    if (!slot) continue
-    summary[slot] = item
-  }
-  return summary
-}
-
 export function canEquipItem(item: Equipment) {
   return item.status === 'ready' || item.status === 'identified'
 }
 
 export { needsIdentify } from './equipmentDisplay'
-
-export function slotLabelForItem(item: Equipment) {
-  const slot = normalizeEquipmentSlot(item.slot)
-  if (!slot) return '未知'
-  return slot
-}

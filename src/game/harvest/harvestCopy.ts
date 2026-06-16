@@ -1,5 +1,4 @@
 import type { HarvestLootTotals } from './harvestLoot'
-import { hasHarvestTotals } from './harvestLoot'
 
 /** 收获列表展示分隔符 */
 export const HARVEST_LOOT_SEPARATOR = '、'
@@ -40,8 +39,4 @@ export function buildHarvestResultText(
 ): string {
   if (reason === 'battle') return formatBattleInterruptedHarvest(totals)
   return formatFinishedHarvestTip(totals)
-}
-
-export function hasHarvestSessionContent(totals: HarvestLootTotals, active: boolean): boolean {
-  return active || hasHarvestTotals(totals)
 }

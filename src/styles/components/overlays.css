@@ -1,0 +1,211 @@
+/* 剧情叙事遮罩 */
+.narrative-overlay-container {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 8, 12, 0.82);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: var(--space-xl);
+  cursor: pointer;
+}
+
+.narrative-overlay--danger { background: rgba(40, 10, 10, 0.85); }
+.narrative-overlay--dark { background: rgba(5, 5, 15, 0.9); }
+.narrative-overlay--dawn { background: rgba(20, 15, 10, 0.82); }
+.narrative-overlay--fate { background: rgba(15, 10, 25, 0.88); }
+
+.narrative-overlay-card {
+  width: min(640px, 100%);
+  background: linear-gradient(165deg, rgba(28, 36, 46, 0.98) 0%, rgba(14, 20, 28, 0.99) 100%);
+  border: 1px solid var(--ink-border-strong);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-panel), 0 20px 60px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  cursor: default;
+  animation: feed-fresh-in 0.35s var(--ease-out);
+}
+
+.narrative-overlay-card__header {
+  padding: var(--space-lg) var(--space-lg) 0;
+}
+
+.narrative-overlay-card__speaker {
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  color: var(--gold-300);
+  font-weight: 600;
+}
+
+.narrative-overlay-card__speaker--narrator {
+  color: var(--text-muted);
+  font-style: italic;
+  font-weight: 400;
+}
+
+.narrative-overlay-card__body {
+  padding: var(--space-md) var(--space-lg);
+}
+
+.narrative-overlay-card__text {
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--text-primary);
+  min-height: 3em;
+}
+
+.narrative-typing-cursor {
+  animation: typing-cursor 0.8s step-end infinite;
+  color: var(--jade-300);
+}
+
+.narrative-overlay-card__footer {
+  padding: 0 var(--space-lg) var(--space-lg);
+  text-align: right;
+}
+
+.narrative-overlay-card__prompt {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--duration-fast);
+}
+
+.narrative-overlay-card__prompt:hover {
+  color: var(--jade-300);
+}
+
+/* 新手引导 */
+.onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 8, 12, 0.88);
+  backdrop-filter: blur(4px);
+  padding: var(--space-xl);
+}
+
+.onboarding-overlay--spotlight {
+  background: rgba(5, 8, 12, 0.7);
+}
+
+.onboarding-prologue {
+  position: relative;
+  width: min(520px, 100%);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  border: 1px solid var(--ink-border-strong);
+  box-shadow: var(--shadow-panel);
+}
+
+.onboarding-prologue__map {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.3;
+}
+
+.onboarding-prologue__veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(10, 15, 20, 0.7) 0%, rgba(10, 15, 20, 0.95) 100%);
+}
+
+.onboarding-prologue__card {
+  position: relative;
+  padding: var(--space-xl);
+}
+
+.onboarding-prologue__eyebrow {
+  font-size: 0.68rem;
+  letter-spacing: 0.15em;
+  color: var(--jade-300);
+  margin-bottom: var(--space-sm);
+}
+
+.onboarding-prologue__title {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  color: var(--gold-300);
+  margin-bottom: var(--space-md);
+}
+
+.onboarding-prologue__body {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.65;
+  margin-bottom: var(--space-xl);
+}
+
+.onboarding-prologue__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-md);
+}
+
+.onboarding-prologue__skip {
+  padding: 8px 16px;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.onboarding-prologue__next {
+  padding: 8px 24px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--gold-500);
+  background: rgba(201, 164, 92, 0.15);
+  color: var(--gold-300);
+  font-weight: 600;
+}
+
+.onboarding-guide__card {
+  width: min(400px, 100%);
+  padding: var(--space-xl);
+  background: linear-gradient(165deg, rgba(24, 32, 42, 0.98) 0%, rgba(12, 18, 26, 0.99) 100%);
+  border: 1px solid var(--gold-500);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-glow-gold);
+}
+
+.onboarding-guide__title {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  color: var(--gold-300);
+  margin-bottom: var(--space-sm);
+}
+
+.onboarding-guide__body {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: var(--space-lg);
+}
+
+.onboarding-guide__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-md);
+}
+
+.onboarding-guide__skip {
+  padding: 6px 12px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.onboarding-guide__next {
+  padding: 6px 20px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--jade-400);
+  background: rgba(45, 212, 191, 0.12);
+  color: var(--jade-300);
+  font-weight: 600;
+}
