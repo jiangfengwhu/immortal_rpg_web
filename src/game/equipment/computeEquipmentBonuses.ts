@@ -32,34 +32,36 @@ export function sumEquipmentBonuses(equipped: EquippedSummary): EquipmentStatBon
 }
 
 function applyItemBonuses(bonuses: EquipmentStatBonuses, item: Equipment) {
-  bonuses.attack += item.attackBonus
-  bonuses.defense += item.defenseBonus
-  bonuses.speed += item.speedBonus
+  bonuses.attack += item.attackBonus ?? 0
+  bonuses.defense += item.defenseBonus ?? 0
+  bonuses.speed += item.speedBonus ?? 0
 
   for (const affix of item.affixes ?? []) {
-    if (!affix.key || !affix.numericValue) continue
+    if (!affix.key) continue
+    const value = affix.numericValue ?? 0
+    if (value === 0) continue
     switch (affix.key) {
       case 'hp':
-        bonuses.hp += affix.numericValue
+        bonuses.hp += value
         break
       case 'attack':
-        bonuses.attack += affix.numericValue
+        bonuses.attack += value
         break
       case 'defense':
-        bonuses.defense += affix.numericValue
+        bonuses.defense += value
         break
       case 'spiritPower':
       case 'skillPower':
-        bonuses.spiritPower += affix.numericValue
+        bonuses.spiritPower += value
         break
       case 'speed':
-        bonuses.speed += affix.numericValue
+        bonuses.speed += value
         break
       case 'sealRate':
-        bonuses.sealRate += affix.numericValue
+        bonuses.sealRate += value
         break
       case 'sealResist':
-        bonuses.sealResist += affix.numericValue
+        bonuses.sealResist += value
         break
     }
   }

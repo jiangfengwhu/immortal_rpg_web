@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 
 import { useGameSessionStore } from '../game/gameSessionStore'
+import { interruptActiveHarvest } from '../game/harvest/interruptHarvest'
 import { AutoBattler } from './autoBattler'
 import { buildEnemyBattleUnit } from './buildEnemyBattleUnit'
 import { buildPlayerBattleUnit } from './buildPlayerBattleUnit'
@@ -88,8 +89,10 @@ let unitDeathId = 0
 let hitEffectId = 0
 
 function resolveEnemyUnit(): BattleUnitConfig {
-  const opponentName = useGameSessionStore.getState().lastOpponentName
-  return buildEnemyBattleUnit(opponentName)
+  const session = useGameSessionStore.getState()
+  const opponent = session.playerState?.opponent ?? null
+  const opponentName = session.lastOpponentName ?? session.playerState?.opponentName
+  return buildEnemyBattleUnit(opponent, opponentName)
 }
 
 function resolvePlayerUnit(): BattleUnitConfig {
@@ -114,7 +117,7 @@ export const useBattleStore = create<BattleStore>((set, get) => {
     const sim = new AutoBattler(playerUnit, enemyUnit)
 
     return {
-      phase: 'entering' as const,
+      phase: 'fighting' as const,
       battleGeneration: battleGeneration + 1,
       playerUnit,
       enemyUnit,
@@ -131,7 +134,10 @@ export const useBattleStore = create<BattleStore>((set, get) => {
       unitDeath: null,
       hitEffect: null,
       unitWorldPosition: {},
-      entranceComplete: { player: false, enemy: false },
+      entranceComplete: { player: true, enemy: true },
+      unitsReady: { player: false, enemy: false },
+      unitProfiles: {},
+      loadError: null,
       rewardSyncing: false,
       rewardSettled: false,
     }
@@ -178,6 +184,7 @@ export const useBattleStore = create<BattleStore>((set, get) => {
   },
 
   startBattle: () => {
+    void interruptActiveHarvest('battle')
     set(buildBeginBattleState())
   },
 

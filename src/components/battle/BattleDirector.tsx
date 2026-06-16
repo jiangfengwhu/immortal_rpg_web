@@ -11,7 +11,8 @@ import {
   useBattleStore,
   type BattleEvent,
 } from '../../battle/battleStore'
-import type { BattleSide } from '../../battle/battle.types'
+import type { BattleActionKind, BattleSide } from '../../battle/battle.types'
+import { resolveActionAnimationRole } from '../../battle/resolveBattleAnimation'
 import type { ResolvedUnitProfile } from '../../battle/resolveBattleAnimation'
 
 const sleep = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms))
@@ -81,13 +82,13 @@ export function BattleDirector() {
       const targetConfig = getBattleUnitConfig(hit.target)
       const actorProfile = unitProfiles[action.actor]
       const targetProfile = unitProfiles[hit.target]
-      const role = action.kind === 'skill' ? 'skill' : 'attack'
+      const role = resolveActionAnimationRole(action.kind)
       const attackAnimation = actorProfile?.animations[role] ?? actorConfig.animations[role]
 
       setUnitAnimation(action.actor, attackAnimation)
 
       const durationSec = actorProfile?.getDuration(role) ?? 0.6
-      const hasSkillAnimation = actorProfile?.capabilities.skill ?? false
+      const hasSkillAnimation = resolveHasSkillAnimation(action.kind, actorProfile)
       const actionMs = getActionDurationMs(action.kind, durationSec, hasSkillAnimation)
       const strikeMs = getStrikeDelayMs(action.kind, durationSec, hasSkillAnimation)
 
@@ -152,13 +153,13 @@ export function BattleDirector() {
       if (event.type === 'ACTION') {
         const config = getBattleUnitConfig(event.actor)
         const profile = unitProfiles[event.actor]
-        const role = event.kind === 'skill' ? 'skill' : 'attack'
+        const role = resolveActionAnimationRole(event.kind)
         const animation = profile?.animations[role] ?? config.animations[role]
 
         setUnitAnimation(event.actor, animation)
 
         const durationSec = profile?.getDuration(role) ?? 0.6
-        const hasSkillAnimation = profile?.capabilities.skill ?? false
+        const hasSkillAnimation = resolveHasSkillAnimation(event.kind, profile)
         await sleep(getActionDurationMs(event.kind, durationSec, hasSkillAnimation))
 
         if (!sim.isFinished()) {
@@ -234,7 +235,7 @@ export function BattleDirector() {
         const events = sim.advanceRound()
 
         if (events.length === 0) {
-          await sleep(140)
+          await sleep(90)
           continue
         }
 
@@ -255,4 +256,17 @@ export function BattleDirector() {
   }, [applySnapshot, phase, setPhase, setUnitAnimation, sim, triggerHitEffect, triggerUnitDeath])
 
   return null
+}
+
+function resolveHasSkillAnimation(
+  kind: BattleActionKind,
+  profile: ResolvedUnitProfile | undefined,
+) {
+  if (kind === 'ultimate') {
+    return profile?.capabilities.ultimate ?? profile?.capabilities.skill ?? false
+  }
+  if (kind === 'skill') {
+    return profile?.capabilities.skill ?? false
+  }
+  return false
 }

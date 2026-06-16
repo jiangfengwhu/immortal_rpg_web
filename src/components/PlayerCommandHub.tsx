@@ -1,11 +1,52 @@
+import { useEffect, useRef } from 'react'
+
 import { useBattleStore } from '../battle/battleStore'
+import { CommandHubInfoFeed } from './CommandHubInfoFeed'
+import { resolveCommandHubActions } from '../game/commandHub/resolveCommandHubActions'
+import type { CommandHubAction } from '../game/commandHub/commandHub.types'
 import { useGameSessionStore } from '../game/gameSessionStore'
-import { CHEST_TYPE_LABELS } from '../game/quest/quest.constants'
-import { STORY_INTERACTION_LABELS } from '../game/quest/qingshi.locations'
+import {
+  BATTLE_LOSE_TEXT,
+  BATTLE_STATUS_TEXT,
+  BATTLE_WIN_TEXT,
+  INTERACTION_ACTION_TEXT,
+} from '../game/infoFeed/infoFeed.copy'
+import { useInfoFeedStore } from '../game/infoFeed/infoFeedStore'
+import { useToastStore } from '../game/toast/toastStore'
+import { resolveActiveAfkFeature } from '../game/harvest/harvest.constants'
+import { isHarvestActive } from '../game/harvest/harvestSession'
+import { useHarvestSession } from '../game/harvest/useHarvestSession'
+import { isStoryBattleReady } from '../game/quest/resolveStoryInteractions'
+import { STORY_FEATURE_KEYS, STORY_ITEM_LABELS } from '../game/quest/story.constants'
 import { useJourneyQuest } from '../game/quest/useJourneyQuest'
 import { PLAYER_COPY } from '../game/ui/playerCopy'
 import { sanitizePlayerErrorMessage } from '../game/ui/playerError'
 import { resolveWorldMap } from '../game/world/resolveWorldMap'
+
+function actionClassName(action: CommandHubAction): string {
+  const classes = ['command-hub__btn']
+  switch (action.variant) {
+    case 'primary':
+      classes.push('command-hub__btn--primary')
+      break
+    case 'choice':
+      classes.push('command-hub__btn--choice')
+      break
+    case 'explore':
+      classes.push('command-hub__btn--explore')
+      break
+    case 'battle':
+      classes.push('command-hub__btn--battle')
+      break
+    case 'utility':
+      classes.push('command-hub__btn--utility')
+      break
+    default:
+      break
+  }
+  if (action.guide) classes.push('command-hub__btn--guide')
+  return classes.join(' ')
+}
 
 export function PlayerCommandHub() {
   const phase = useBattleStore((state) => state.phase)
@@ -21,52 +62,168 @@ export function PlayerCommandHub() {
   const lastBattleResult = useGameSessionStore((state) => state.lastBattleResult)
   const errorMessage = useGameSessionStore((state) => state.errorMessage)
   const onboardingStep = useGameSessionStore((state) => state.onboardingStep)
-  const isSaving = useGameSessionStore((state) => state.isSaving)
-  const toggleJourneyModal = useGameSessionStore((state) => state.toggleJourneyModal)
-  const toggleMapTravel = useGameSessionStore((state) => state.toggleMapTravel)
-  const advanceJourney = useGameSessionStore((state) => state.advanceJourney)
+  const startAfkGather = useGameSessionStore((state) => state.startAfkGather)
+  const stopAfkGather = useGameSessionStore((state) => state.stopAfkGather)
+
+  const feedTimeline = useInfoFeedStore((state) => state.entries)
+  const syncChronicle = useInfoFeedStore((state) => state.syncChronicle)
+  const bindPlayer = useInfoFeedStore((state) => state.bindPlayer)
+  const clearPlayer = useInfoFeedStore((state) => state.clearPlayer)
+  const pushAction = useInfoFeedStore((state) => state.pushAction)
+  const pushStatus = useInfoFeedStore((state) => state.pushStatus)
+  const settleStatus = useInfoFeedStore((state) => state.settleStatus)
+  const pushResult = useInfoFeedStore((state) => state.pushResult)
+  const finalizeHarvestSession = useInfoFeedStore((state) => state.finalizeHarvestSession)
+
+  const harvestActive = isHarvestActive(feedTimeline)
+
+  const pushToast = useToastStore((state) => state.pushToast)
 
   const {
     player,
     quest,
+    storyState,
     storyActive,
-    narratives,
     choices,
     interactions,
+    afkFeatures,
     busy,
-    dismissNarratives,
     onInteraction,
     runEvent,
   } = useJourneyQuest()
 
+  const battleStatusRef = useRef<string | null>(null)
+  const prevPhaseRef = useRef(phase)
+  const lastFeedErrorRef = useRef('')
+  const playerId = player?.id
+
+  useHarvestSession(playerId, storyState?.storyFlags, afkFeatures)
+
+  useEffect(() => {
+    if (!playerId) return
+    bindPlayer(playerId)
+    return () => clearPlayer()
+  }, [bindPlayer, clearPlayer, playerId])
+
+  useEffect(() => {
+    if (!playerId || !storyState) return
+    syncChronicle(storyState.storyChronicle ?? [], storyState.pendingNarratives ?? [])
+  }, [playerId, storyState?.storyChronicle, storyState?.pendingNarratives, syncChronicle])
+
+  useEffect(() => {
+    if (phase === 'entering' && prevPhaseRef.current === 'ready') {
+      battleStatusRef.current = pushStatus(BATTLE_STATUS_TEXT)
+    }
+    if (phase === 'ended' && winner && battleStatusRef.current) {
+      settleStatus(
+        battleStatusRef.current,
+        winner === 'player' ? BATTLE_WIN_TEXT : BATTLE_LOSE_TEXT,
+        winner === 'player' ? 'success' : 'warn',
+      )
+      battleStatusRef.current = null
+    }
+    prevPhaseRef.current = phase
+  }, [phase, winner, pushStatus, settleStatus])
+
+  useEffect(() => {
+    const message = loadError
+      ? sanitizePlayerErrorMessage(loadError)
+      : errorMessage || ''
+    if (!message) {
+      lastFeedErrorRef.current = ''
+      return
+    }
+    if (message === lastFeedErrorRef.current) return
+    pushResult(message, 'warn')
+    lastFeedErrorRef.current = message
+    if (errorMessage) useGameSessionStore.setState({ errorMessage: '' })
+  }, [loadError, errorMessage, pushResult])
+
   if (!playerState || !player || !quest) return null
 
   const canStart = unitsReady.player && unitsReady.enemy && !loadError
-  const playerFacingLoadError = loadError ? sanitizePlayerErrorMessage(loadError) : null
-  const opponent = lastOpponentName ?? PLAYER_COPY.opponentFallback
+  const opponent =
+    playerState.opponentName ?? lastOpponentName ?? PLAYER_COPY.opponentFallback
   const inPerformance = phase !== 'ready'
   const objectives = quest.objectives ?? []
   const mapChapter = resolveWorldMap(player.realm, player.stageIndex)
   const mapName = quest.mapName ?? mapChapter.name
   const mapPhase = quest.mapPhaseName ?? mapChapter.phaseName
-  const canAdvance = player.stageCleared && !isSaving
-  const chestLabel = quest.rewards?.chestType
-    ? CHEST_TYPE_LABELS[quest.rewards.chestType] ?? quest.rewards.chestType
-    : null
   const questGuide = onboardingStep === 1
   const battleGuide = onboardingStep === 2
+  const storyBattleReady = isStoryBattleReady(storyState)
+  const storyItems = (storyState?.storyItems ?? []).map((id) => ({
+    id,
+    label: STORY_ITEM_LABELS[id] ?? id,
+  }))
+  const hasNoviceTitle = storyState?.unlockedFeatures?.includes(STORY_FEATURE_KEYS.titleNovice)
 
-  const showStoryFeed = storyActive && narratives.length > 0
-  const showStoryChoices = storyActive && choices.length > 0
-  const showStoryActions =
-    storyActive && narratives.length === 0 && choices.length === 0 && interactions.length > 0
+  const activeAfkFeature = resolveActiveAfkFeature(storyState?.storyFlags, afkFeatures)
+
+  const actions = resolveCommandHubActions({
+    questTitle: quest.title,
+    objectives,
+    opponent,
+    choices,
+    interactions,
+    afkFeatures,
+    activeAfkFeature,
+    busy,
+    storyActive,
+    storyBattleReady,
+    phase,
+    canStartBattle: canStart,
+    battleGuide,
+  })
+
+  const handleAction = (action: CommandHubAction) => {
+    switch (action.kind) {
+      case 'story_choice':
+        if (action.choiceId) {
+          pushAction(`你选择了「${action.label}」。`)
+          void runEvent({ playerId: player.id, type: 'make_choice', choiceId: action.choiceId })
+        }
+        break
+      case 'story_interaction': {
+        const key = action.interactionKey
+        if (key) {
+          const actionText = INTERACTION_ACTION_TEXT[key]
+          if (actionText) pushAction(actionText)
+          onInteraction(key)
+        }
+        break
+      }
+      case 'battle':
+        startBattle()
+        break
+      case 'afk_claim': {
+        const feature = action.afkFeature
+        if (!feature) break
+        void startAfkGather(feature).then((outcome) => {
+          if (!outcome.ok) {
+            pushToast(outcome.message, 'warn')
+          }
+        })
+        break
+      }
+      default:
+        break
+    }
+  }
+
+  const handleStopHarvest = (_sessionId: string) => {
+    const feature = activeAfkFeature ?? STORY_FEATURE_KEYS.afkHerb
+    void stopAfkGather(feature).then((outcome) => {
+      if (!outcome.ok) {
+        pushToast(outcome.message, 'warn')
+        return
+      }
+      finalizeHarvestSession('stopped')
+    })
+  }
 
   return (
     <section className="command-hub" aria-label="仙途决策">
-      {(playerFacingLoadError || errorMessage) && (
-        <p className="command-hub__alert command-hub__alert--error">{playerFacingLoadError ?? errorMessage}</p>
-      )}
-
       {lastBattleResult?.won && phase === 'ready' && lastBattleResult.leveledUp && (
         <p className="command-hub__alert command-hub__alert--level">{PLAYER_COPY.levelUp}</p>
       )}
@@ -100,120 +257,80 @@ export function PlayerCommandHub() {
       )}
 
       <div className="command-hub__panel">
-        <div className="command-hub__section">
-          <header
-            className={`command-hub__quest${questGuide ? ' command-hub__quest--guide' : ''}`}
-            data-onboarding-target="journey-quest"
-          >
-            <p className="command-hub__eyebrow">{mapPhase}</p>
-            <h2 className="command-hub__title">{quest.title}</h2>
-            <p className="command-hub__meta">
-              {PLAYER_COPY.questMapPhase(mapPhase, mapName)} · {PLAYER_COPY.questStage(quest.stageIndex + 1)}
-            </p>
-            {objectives[0] && <p className="command-hub__objective">{objectives[0]}</p>}
-          </header>
+        <header
+          className={`command-hub__status${questGuide ? ' command-hub__status--guide' : ''}`}
+          data-onboarding-target="journey-quest"
+        >
+          {storyActive && <p className="command-hub__eyebrow">{mapPhase}</p>}
+          <h2 className="command-hub__title">{quest.title}</h2>
+          {mapName && <p className="command-hub__where">{mapName}</p>}
 
-          {quest.summary && <p className="command-hub__summary">{quest.summary}</p>}
-
-          {showStoryFeed && (
-            <div className="command-hub__story">
-              {narratives.map((beat) => (
-                <p key={beat.id} className="command-hub__story-line">
-                  {beat.speaker && <strong>{beat.speaker}：</strong>}
-                  {beat.text}
-                </p>
-              ))}
-              <button type="button" className="command-hub__btn command-hub__btn--soft" onClick={dismissNarratives}>
-                {PLAYER_COPY.storyContinue}
-              </button>
-            </div>
-          )}
-
-          {showStoryChoices && (
-            <div className="command-hub__choice-row" role="group" aria-label="剧情抉择">
-              {choices.map((choice) => (
-                <button
-                  key={choice.id}
-                  type="button"
-                  className="command-hub__btn command-hub__btn--choice"
-                  disabled={busy}
-                  onClick={() =>
-                    void runEvent({ playerId: player.id, type: 'make_choice', choiceId: choice.id })
-                  }
-                >
-                  <span>{choice.label}</span>
-                  {choice.hint && <small>{choice.hint}</small>}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {showStoryActions && (
-            <div className="command-hub__action-row" role="group" aria-label="自由探索">
-              {interactions.map((key) => (
-                <button
-                  key={key}
-                  type="button"
-                  className="command-hub__btn command-hub__btn--explore"
-                  disabled={busy}
-                  onClick={() => onInteraction(key)}
-                >
-                  {STORY_INTERACTION_LABELS[key] ?? key}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {!showStoryFeed && !showStoryChoices && !showStoryActions && (
-            <p className="command-hub__empty">四处走走推进剧情，或挑战关底敌手。</p>
-          )}
-
-          {objectives.length > 1 && (
-            <ul className="command-hub__objectives">
-              {objectives.slice(1).map((objective) => (
-                <li key={objective}>{objective}</li>
+          {storyItems.length > 0 && (
+            <ul className="command-hub__items" aria-label={PLAYER_COPY.storyItems}>
+              {storyItems.map((item) => (
+                <li key={item.id} className="command-hub__item">
+                  {item.label}
+                </li>
               ))}
             </ul>
           )}
 
-          <div className="command-hub__foe-card">
-            <span className="command-hub__foe-label">关底敌手</span>
-            <strong className="command-hub__foe-name">{opponent}</strong>
-          </div>
-
-          {phase === 'ready' && canStart && (
-            <button
-              type="button"
-              className={`command-hub__btn command-hub__btn--battle${battleGuide ? ' command-hub__btn--guide' : ''}`}
-              data-onboarding-target="battle-start"
-              onClick={startBattle}
-            >
-              <span className="command-hub__battle-label">{PLAYER_COPY.battleStart}</span>
-            </button>
+          {hasNoviceTitle && (
+            <p className="command-hub__title-badge">{PLAYER_COPY.titleNovice}</p>
           )}
+        </header>
 
-          <div className="command-hub__utility-row" role="group" aria-label="旅途操作">
-            <button type="button" className="command-hub__btn command-hub__btn--utility" onClick={toggleMapTravel}>
-              {PLAYER_COPY.mapTravelOpen}
-            </button>
-            <button type="button" className="command-hub__btn command-hub__btn--utility" onClick={toggleJourneyModal}>
-              {PLAYER_COPY.journeyOpenDetail}
-            </button>
-            <button
-              type="button"
-              className="command-hub__btn command-hub__btn--utility command-hub__btn--advance"
-              disabled={!canAdvance}
-              onClick={() => void advanceJourney()}
-            >
-              {PLAYER_COPY.mapTravelAdvance}
-            </button>
+        <CommandHubInfoFeed
+          timeline={feedTimeline}
+          objectives={objectives}
+          onStopHarvest={harvestActive ? handleStopHarvest : undefined}
+        />
+
+        {actions.length > 0 && (
+          <div className="command-hub__actions" role="group" aria-label={PLAYER_COPY.commandHubActions}>
+            <p className="command-hub__actions-label">{PLAYER_COPY.commandHubActions}</p>
+            <div className="command-hub__actions-deck">
+              {actions.map((action) => (
+                <button
+                  key={action.id}
+                  type="button"
+                  className={actionClassName(action)}
+                  disabled={action.disabled}
+                  data-onboarding-target={action.onboardingTarget}
+                  onClick={() => handleAction(action)}
+                >
+                  {action.variant === 'choice' ? (
+                    <>
+                      <span>{action.label}</span>
+                      {action.hint && (
+                        <>
+                          <span className="command-hub__btn-sep" aria-hidden>
+                            ·
+                          </span>
+                          <span className="command-hub__btn-sub">{action.hint}</span>
+                        </>
+                      )}
+                    </>
+                  ) : action.variant === 'battle' ? (
+                    <>
+                      <span className="command-hub__battle-label">{action.label}</span>
+                      {action.hint && (
+                        <>
+                          <span className="command-hub__btn-sep" aria-hidden>
+                            ·
+                          </span>
+                          <span className="command-hub__battle-foe">{action.hint}</span>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    action.label
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
-
-          <p className="command-hub__hint">
-            {canAdvance ? PLAYER_COPY.mapTravelReady : PLAYER_COPY.mapTravelNeedBoss}
-            {chestLabel ? ` · ${chestLabel}` : ''}
-          </p>
-        </div>
+        )}
       </div>
     </section>
   )

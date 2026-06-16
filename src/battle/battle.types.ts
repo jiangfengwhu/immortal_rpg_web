@@ -2,13 +2,14 @@ export type BattleSide = 'player' | 'enemy'
 
 export type BattlePhase = 'ready' | 'entering' | 'fighting' | 'ended'
 
-export type BattleActionKind = 'attack' | 'skill'
+export type BattleActionKind = 'attack' | 'skill' | 'ultimate'
 
 export type UnitAnimationSet = {
   idle: string
   run: string
   attack: string
   skill: string
+  ultimate: string
   hit: string
   death: string
 }
@@ -38,6 +39,8 @@ export type BattleUnitConfig = {
   skillCooldown: number
   /** 法术流派：技能伤害走灵力公式 */
   useMagicDamage?: boolean
+  /** 怪物少用技能/大招，避免前期碾压玩家 */
+  combatStyle?: 'hero' | 'brute'
   animations: UnitAnimationSet
 }
 

@@ -48,6 +48,20 @@ export type PlayerFullState = {
   storyLog: unknown[]
   inventory: Equipment[]
   equipped: EquippedSummary
+  opponentName?: string
+  opponent?: {
+    id: string
+    name: string
+    spinePath?: string
+    scale?: number
+    maxHp: number
+    attack: number
+    defense: number
+    spiritPower: number
+    speed: number
+    skillCooldown?: number
+    combatStyle?: 'hero' | 'brute'
+  }
 }
 
 export type BattleResult = {

@@ -50,7 +50,9 @@ export function BattleDamageNumbers() {
             key={popup.id}
             className={`battle-damage battle-damage--${popup.target}${
               popup.kind === 'skill' ? ' battle-damage--skill' : ''
-            }${popup.visible ? '' : ' battle-damage--fade'}`}
+            }${popup.kind === 'ultimate' ? ' battle-damage--ultimate' : ''}${
+              popup.visible ? '' : ' battle-damage--fade'
+            }`}
             style={{ left: `${left}%`, top: `${top}%` }}
           >
             -{popup.damage}

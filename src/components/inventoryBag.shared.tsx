@@ -1,6 +1,7 @@
 import { SLOT_GLYPH } from '../game/equipment/equipment.constants'
 import { equipmentIconDataUrl } from '../game/equipment/equipmentIcon'
 import type { Equipment, EquipmentRarity, EquipmentSlot } from '../game/equipment/equipment.types'
+import { effectiveStackCount, itemDisplayName } from '../game/equipment/equipmentStack'
 import { normalizeEquipmentSlot } from '../game/equipment/equipment.types'
 
 export function rarityClass(rarity?: EquipmentRarity) {
@@ -18,7 +19,8 @@ type EquipVisualProps = {
 export function EquipVisual({ item, slot, size = 'md', framed = false }: EquipVisualProps) {
   const rarity = item?.rarity ?? 'common'
   const normalizedSlot = normalizeEquipmentSlot(item?.slot ?? slot)
-  const glyph = item?.name?.charAt(0) ?? (normalizedSlot ? SLOT_GLYPH[normalizedSlot] : '宝')
+  const displayName = item ? itemDisplayName(item) : ''
+  const glyph = displayName.charAt(0) || (normalizedSlot ? SLOT_GLYPH[normalizedSlot] : '宝')
   const rarityCls = rarityClass(rarity)
   const framedCls = framed ? 'equip-visual--framed' : ''
 

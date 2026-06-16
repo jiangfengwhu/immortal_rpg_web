@@ -1,5 +1,11 @@
 import { ACTION_GAUGE_THRESHOLD } from './battle.constants'
-import type { BattleActionKind, BattleEvent, BattleSide, BattleSnapshot, BattleUnitConfig } from './battle.types'
+import {
+  createOpeningGauge,
+  pickBattleAction,
+  resolveBattleDamage,
+  resolveSkillCooldown,
+} from './battleDamage'
+import type { BattleEvent, BattleSide, BattleSnapshot, BattleUnitConfig } from './battle.types'
 
 type UnitRuntime = {
   hp: number
@@ -16,33 +22,12 @@ type AutoBattlerState = {
   finished: boolean
 }
 
-function createRuntime(maxHp: number): UnitRuntime {
+function createRuntime(maxHp: number, side: BattleSide): UnitRuntime {
   return {
     hp: maxHp,
-    gauge: 0,
+    gauge: createOpeningGauge(side),
     skillCooldown: 0,
   }
-}
-
-function pickAction(unit: UnitRuntime): BattleActionKind {
-  if (unit.skillCooldown <= 0 && Math.random() < 0.38) {
-    return 'skill'
-  }
-  return 'attack'
-}
-
-function getDamage(
-  kind: BattleActionKind,
-  config: BattleUnitConfig,
-) {
-  let base: number
-  if (kind === 'skill') {
-    base = config.useMagicDamage ? config.spiritPower : Math.round(config.attack * 1.35)
-  } else {
-    base = config.attack
-  }
-  const variance = 0.88 + Math.random() * 0.24
-  return Math.max(1, Math.round(base * variance))
 }
 
 export class AutoBattler {
@@ -105,8 +90,8 @@ export class AutoBattler {
 
   private createInitialState(): AutoBattlerState {
     return {
-      player: createRuntime(this.playerConfig.maxHp),
-      enemy: createRuntime(this.enemyConfig.maxHp),
+      player: createRuntime(this.playerConfig.maxHp, 'player'),
+      enemy: createRuntime(this.enemyConfig.maxHp, 'enemy'),
       turn: 0,
       log: [],
       winner: null,
@@ -134,11 +119,12 @@ export class AutoBattler {
     actorRuntime.gauge -= ACTION_GAUGE_THRESHOLD
     this.state.turn += 1
 
-    const kind = pickAction(actorRuntime)
-    const damage = getDamage(kind, actorConfig)
+    const kind = pickBattleAction(actorRuntime, actorConfig.combatStyle)
+    const { damage } = resolveBattleDamage(kind, actorConfig, targetConfig)
 
-    if (kind === 'skill') {
-      actorRuntime.skillCooldown = actorConfig.skillCooldown
+    const cooldown = resolveSkillCooldown(kind, actorConfig.skillCooldown)
+    if (cooldown > 0) {
+      actorRuntime.skillCooldown = cooldown
     }
 
     targetRuntime.hp = Math.max(0, targetRuntime.hp - damage)

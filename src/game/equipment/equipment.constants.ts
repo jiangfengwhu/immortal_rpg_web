@@ -10,6 +10,7 @@ export const EQUIPMENT_SLOT_LABELS: Record<EquipmentSlot, string> = {
   bracer: '护腕',
   hat: '帽子',
   belt: '腰带',
+  material: '材料',
 }
 
 /** 背包面板展示顺序（与用户设定一致） */
@@ -76,4 +77,5 @@ export const SLOT_GLYPH: Record<EquipmentSlot, string> = {
   bracer: '腕',
   hat: '冠',
   belt: '带',
+  material: '草',
 }

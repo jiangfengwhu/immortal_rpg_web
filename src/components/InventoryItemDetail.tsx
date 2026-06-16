@@ -13,6 +13,7 @@ import {
   needsIdentify,
 } from '../game/equipment/equipmentDisplay'
 import type { Equipment } from '../game/equipment/equipment.types'
+import { effectiveStackCount, itemDisplayName } from '../game/equipment/equipmentStack'
 import { normalizeEquipmentSlot } from '../game/equipment/equipment.types'
 import type { InventoryDetailAnchor } from '../game/inventory/inventoryDetailAnchor'
 import { EquipVisual, rarityClass } from './inventoryBag.shared'
@@ -35,6 +36,7 @@ export function InventoryItemDetail({
 }: InventoryItemDetailProps) {
   const revealed = isEquipmentRevealed(item)
   const baseStats = equipmentBaseStats(item)
+  const stackCount = effectiveStackCount(item)
   const prevStatus = useRef(item.status)
   const [flashReveal, setFlashReveal] = useState(false)
 
@@ -80,7 +82,10 @@ export function InventoryItemDetail({
             : ''}
           {revealed && <span className="inventory-detail__identified-badge">已鉴定</span>}
         </p>
-        <h3 className="inventory-detail__name">{item.name ?? '未知装备'}</h3>
+        <h3 className="inventory-detail__name">
+          {itemDisplayName(item)}
+          {stackCount > 1 ? ` ×${stackCount}` : ''}
+        </h3>
 
         {revealed && item.lore && (
           <p className="inventory-detail__lore">{item.lore}</p>

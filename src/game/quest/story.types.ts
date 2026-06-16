@@ -20,6 +20,7 @@ export type StoryState = {
   storyItems?: string[]
   unlockedFeatures?: string[]
   pendingNarratives?: NarrativeBeat[]
+  storyChronicle?: NarrativeBeat[]
 }
 
 export type QuestEventResponse = {

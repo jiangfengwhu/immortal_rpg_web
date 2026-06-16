@@ -13,6 +13,7 @@ export type EquipmentSlot =
   | 'bracer'   // 护腕
   | 'hat'      // 帽子
   | 'belt'     // 腰带
+  | 'material' // 材料
 
 export type EquipmentAffix = {
   label: string
@@ -39,6 +40,7 @@ export type Equipment = {
   critBonus?: number
   bossName?: string
   chestType?: string
+  stackCount?: number
 }
 
 export type EquippedSummary = {

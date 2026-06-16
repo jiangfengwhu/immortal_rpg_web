@@ -1,8 +1,15 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { postQuestEvent } from '../../api/quest'
+import { useBattleStore } from '../../battle/battleStore'
 import { useGameSessionStore } from '../gameSessionStore'
-import type { NarrativeBeat, StoryChoice } from './story.types'
+import { useInfoFeedStore } from '../infoFeed/infoFeedStore'
+import {
+  resolveAfkFeatures,
+  resolvePendingStoryChoices,
+  resolveStoryInteractions,
+} from './resolveStoryInteractions'
+import type { StoryChoice } from './story.types'
 import { QINGSHI_LOCATIONS } from './qingshi.locations'
 
 export function isQingshiStory(
@@ -15,16 +22,43 @@ export function isQingshiStory(
 export function useJourneyQuest() {
   const playerState = useGameSessionStore((state) => state.playerState)
   const applyStoryEvent = useGameSessionStore((state) => state.applyStoryEvent)
+  const startBattle = useBattleStore((state) => state.startBattle)
 
-  const [narratives, setNarratives] = useState<NarrativeBeat[]>([])
   const [choices, setChoices] = useState<StoryChoice[]>([])
   const [interactions, setInteractions] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
+  const pendingNarrativesAckRef = useRef(false)
 
   const player = playerState?.player
   const storyState = playerState?.storyState
   const quest = playerState?.quest
   const storyActive = player && quest ? isQingshiStory(player, quest) : false
+  const afkFeatures = storyActive ? resolveAfkFeatures(storyState) : []
+  const dangerMood =
+    storyState?.pendingNarratives?.some((beat) => beat.mood === 'danger') ||
+    storyState?.storyChronicle?.at(-1)?.mood === 'danger' ||
+    interactions.includes('fight_boar')
+
+  useEffect(() => {
+    if (!player || !storyActive || !storyState) return
+    setInteractions(resolveStoryInteractions(player, storyState))
+    setChoices(resolvePendingStoryChoices(storyState))
+  }, [player, storyActive, storyState])
+
+  useEffect(() => {
+    pendingNarrativesAckRef.current = false
+  }, [player?.id])
+
+  useEffect(() => {
+    if (!player || !storyActive || !storyState?.pendingNarratives?.length) return
+    if (pendingNarrativesAckRef.current) return
+    pendingNarrativesAckRef.current = true
+
+    useInfoFeedStore.getState().appendStoryBeats(storyState.pendingNarratives)
+    void postQuestEvent({ playerId: player.id, type: 'dismiss_narratives' }).then((result) => {
+      void applyStoryEvent(result)
+    })
+  }, [player, storyActive, storyState?.pendingNarratives, applyStoryEvent])
 
   useEffect(() => {
     if (!player || !storyActive) return
@@ -33,9 +67,10 @@ export function useJourneyQuest() {
 
     void (async () => {
       const result = await postQuestEvent({ playerId: player.id, type: 'first_enter' })
+      useInfoFeedStore.getState().appendStoryBeats(result.narratives ?? [])
       await applyStoryEvent(result)
-      setNarratives(result.narratives ?? [])
-      setInteractions(result.interactions ?? [])
+      setInteractions(result.interactions ?? resolveStoryInteractions(player, result.storyState))
+      setChoices(result.choices ?? resolvePendingStoryChoices(result.storyState))
     })()
   }, [player, storyActive, storyState?.questStatuses?.QS_WAKE, applyStoryEvent])
 
@@ -45,10 +80,12 @@ export function useJourneyQuest() {
       setBusy(true)
       try {
         const result = await postQuestEvent(payload)
+        useInfoFeedStore.getState().appendStoryBeats(result.narratives ?? [])
         await applyStoryEvent(result)
-        setNarratives(result.narratives?.length ? result.narratives : [])
-        setChoices(result.choices ?? [])
-        setInteractions(result.interactions ?? [])
+        setChoices(result.choices ?? resolvePendingStoryChoices(result.storyState))
+        setInteractions(
+          result.interactions ?? resolveStoryInteractions(player, result.storyState),
+        )
       } finally {
         setBusy(false)
       }
@@ -56,15 +93,13 @@ export function useJourneyQuest() {
     [applyStoryEvent, player],
   )
 
-  const dismissNarratives = useCallback(() => {
-    if (!player) return
-    setNarratives([])
-    void runEvent({ playerId: player.id, type: 'dismiss_narratives' })
-  }, [player, runEvent])
-
   const onInteraction = useCallback(
     (key: string) => {
       if (!player) return
+      if (key === 'fight_boar') {
+        startBattle()
+        return
+      }
       switch (key) {
         case 'go_yard':
           void runEvent({ playerId: player.id, type: 'enter_location', location: QINGSHI_LOCATIONS.yard })
@@ -91,25 +126,23 @@ export function useJourneyQuest() {
           break
       }
     },
-    [player, runEvent],
+    [player, runEvent, startBattle],
   )
 
-  const pendingStory =
-    storyActive &&
-    (narratives.length > 0 || choices.length > 0 || interactions.length > 0)
+  const pendingStory = storyActive && (choices.length > 0 || interactions.length > 0)
 
   return {
     player,
     quest,
     storyState,
     storyActive,
-    narratives,
     choices,
     interactions,
+    afkFeatures,
+    dangerMood,
     busy,
     pendingStory,
     runEvent,
-    dismissNarratives,
     onInteraction,
   }
 }

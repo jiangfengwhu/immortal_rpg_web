@@ -1,6 +1,7 @@
 import { useEffect, useRef, type MouseEvent } from 'react'
 
 import type { Equipment } from '../game/equipment/equipment.types'
+import { effectiveStackCount } from '../game/equipment/equipmentStack'
 import { useInventoryBag } from '../game/inventory/useInventoryBag'
 import { EquipVisual } from './inventoryBag.shared'
 
@@ -62,6 +63,7 @@ export function InventoryBagGrid({
             return <div key={`empty-${index}`} className="inventory-slot inventory-slot--empty" />
           }
           const isActive = hoveredItemId === item.id
+          const stackCount = effectiveStackCount(item)
           return (
             <button
               key={item.id}
@@ -85,6 +87,9 @@ export function InventoryBagGrid({
               )}
               {item.status === 'ready' && (
                 <span className="inventory-slot__badge inventory-slot__badge--unidentified">?</span>
+              )}
+              {stackCount > 1 && (
+                <span className="inventory-slot__badge inventory-slot__badge--stack">×{stackCount}</span>
               )}
             </button>
           )

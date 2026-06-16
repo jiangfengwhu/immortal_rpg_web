@@ -4,11 +4,22 @@ import 'pixi-spine'
 import { Spine } from 'pixi-spine'
 
 import { COMBAT_ADVANCE_MS, COMBAT_RETURN_MS, ENTRANCE_DURATION_MS, FLYOUT_DURATION_MS } from '../../battle/battleTiming'
-import { COMBAT_CENTER_GAP_RATIO, FIGHT_INWARD_NUDGE } from '../../battle/battle.constants'
+import {
+  ENEMY_FIGHT_FOOT_X_RATIO,
+  FIGHT_INWARD_NUDGE,
+  PLAYER_FIGHT_FOOT_X_RATIO,
+} from '../../battle/battle.constants'
 import { resolveUnitProfile, shouldLoopBattleAnimation } from '../../battle/resolveBattleAnimation'
 import type { BattleUnitConfig } from '../../battle/battle.types'
 import { useBattleStore } from '../../battle/battleStore'
 import { loadSpineAsset } from '../../game/loadSpineAsset'
+import {
+  applySpineIdlePose,
+  computeSpineFitScale,
+  measureSpineFootBounds,
+  placeSpineAtFoot,
+  readSpineMarkerAnchor,
+} from '../../game/spineStageLayout'
 import { PLAYER_COPY } from '../../game/ui/playerCopy'
 import { isSpineAlive, queueDisposeSpine } from '../../game/spineLifecycle'
 
@@ -76,32 +87,25 @@ export function BattleUnitActor({
 
   const phase = useBattleStore((state) => state.phase)
   const battleGeneration = useBattleStore((state) => state.battleGeneration)
+  const unitReady = useBattleStore((state) => state.unitsReady[config.side])
   const unitDeath = useBattleStore((state) => state.unitDeath)
   const markEntranceComplete = useBattleStore((state) => state.markEntranceComplete)
   const setUnitWorldPosition = useBattleStore((state) => state.setUnitWorldPosition)
 
   useEffect(() => {
     layoutRef.current = null
-  }, [worldHeight])
+  }, [worldHeight, config.skeleton, config.id])
 
   const measureLayout = (spine: Spine) => {
-    if (layoutRef.current) {
-      return layoutRef.current
-    }
-
-    const savedScaleX = spine.scale.x
-    const savedScaleY = spine.scale.y
-    spine.scale.set(1, 1)
-    spine.update(0)
-    const bounds = spine.getLocalBounds()
-    const maxDimension = Math.max(bounds.width, bounds.height, 1)
+    applySpineIdlePose(spine, config.animations.idle)
+    const bounds = measureSpineFootBounds(spine)
+    const fitScale = computeSpineFitScale(bounds, worldHeight, config.fitHeightWeight, 1)
 
     layoutRef.current = {
-      fitScale: (worldHeight * config.fitHeightWeight) / maxDimension,
+      fitScale,
       bodyWidth: bounds.width,
     }
 
-    spine.scale.set(savedScaleX, savedScaleY)
     return layoutRef.current
   }
 
@@ -110,36 +114,45 @@ export function BattleUnitActor({
     const finalScale = layout.fitScale * config.scale
     spine.scale.set(finalScale * config.faceDirection, finalScale)
     spine.update(0)
+    return finalScale
   }
 
-  const getUnitPosition = (spine: Spine, mode: 'spawn' | 'fight') => {
-    const layout = measureLayout(spine)
-    applyUnitScale(spine)
-
-    const finalScale = layout.fitScale * config.scale
-    const y = worldHeight * config.yRatio
-
+  const resolveFootTarget = (mode: 'spawn' | 'fight') => {
+    const footY = worldHeight * config.yRatio
     if (mode === 'fight') {
-      const gap = worldWidth * COMBAT_CENTER_GAP_RATIO
-      const centerX = worldWidth * 0.5
-      const scaleX = finalScale * config.faceDirection
-
-      const x =
-        config.side === 'player'
-          ? resolveFrontEdgeX(spine, centerX - gap * 0.5, scaleX, 'right')
-          : resolveFrontEdgeX(spine, centerX + gap * 0.5, scaleX, 'left')
-
-      return { x, y }
+      const footX =
+        worldWidth *
+        (config.side === 'player' ? PLAYER_FIGHT_FOOT_X_RATIO : ENEMY_FIGHT_FOOT_X_RATIO)
+      return { footX, footY }
     }
 
-    const bodyWidth = layout.bodyWidth * finalScale
+    const layout = layoutRef.current
+    const bodyWidth = (layout?.bodyWidth ?? 80) * (layout?.fitScale ?? 1) * config.scale
     const inwardNudge = bodyWidth * FIGHT_INWARD_NUDGE
     const baseX = worldWidth * config.spawnXRatio
 
     return {
-      x: config.side === 'player' ? baseX + inwardNudge * 0.3 : baseX - inwardNudge * 0.3,
-      y,
+      footX: config.side === 'player' ? baseX + inwardNudge * 0.15 : baseX - inwardNudge * 0.15,
+      footY,
     }
+  }
+
+  const positionSpineAtFoot = (spine: Spine, footX: number, footY: number) => {
+    applySpineIdlePose(spine, config.animations.idle)
+    const bounds = measureSpineFootBounds(spine)
+    const finalScale = computeSpineFitScale(bounds, worldHeight, config.fitHeightWeight, config.scale)
+    const scaleX = finalScale * config.faceDirection
+    placeSpineAtFoot(spine, footX, footY, scaleX, finalScale)
+    layoutRef.current = {
+      fitScale: finalScale / Math.max(config.scale, 0.01),
+      bodyWidth: bounds.width,
+    }
+    return { x: spine.x, y: spine.y }
+  }
+
+  const getUnitPosition = (spine: Spine, mode: 'spawn' | 'fight') => {
+    const { footX, footY } = resolveFootTarget(mode)
+    return positionSpineAtFoot(spine, footX, footY)
   }
 
   const startCombatShift = (spine: Spine, endX: number, duration: number) => {
@@ -196,7 +209,7 @@ export function BattleUnitActor({
     spine.rotation = 0
     applyUnitScale(spine)
 
-    if (phase === 'entering') {
+    if (useBattleStore.getState().phase === 'entering') {
       beginEntrance(spine, profile)
       return
     }
@@ -268,12 +281,12 @@ export function BattleUnitActor({
   useEffect(() => {
     const spine = spineRef.current
     const profile = profileRef.current
-    if (!spine || !profile || !isSpineAlive(spine) || battleGeneration === 0) {
+    if (!spine || !profile || !isSpineAlive(spine) || battleGeneration === 0 || !unitReady) {
       return
     }
 
     resetUnitForBattle(spine, profile)
-  }, [battleGeneration, config, phase, worldHeight, worldWidth])
+  }, [battleGeneration, config, phase, unitReady, worldHeight, worldWidth])
 
   useEffect(() => {
     if (!unitDeath || unitDeath.side !== config.side) {
@@ -307,9 +320,8 @@ export function BattleUnitActor({
     }
 
     applyUnitScale(spine)
-    const fight = getUnitPosition(spine, 'fight')
-    spine.x = fight.x
-    spine.y = fight.y
+    const fight = resolveFootTarget('fight')
+    positionSpineAtFoot(spine, fight.footX, fight.footY)
     syncHomeFromSpine(spine, homeRef)
     publishMarkerAnchor(spine)
   }, [config, worldHeight, worldWidth])
@@ -330,7 +342,8 @@ export function BattleUnitActor({
 
     const isCombat =
       animationName === profile.animations.attack ||
-      animationName === profile.animations.skill
+      animationName === profile.animations.skill ||
+      animationName === profile.animations.ultimate
 
     playAnimation(spine, profile, animationName, isDeadRef, {
       homeRef,
@@ -345,19 +358,17 @@ export function BattleUnitActor({
       combatShiftRef.current.active = false
       spine.x = homeRef.current.x
     }
+
+    publishMarkerAnchor(spine)
   }, [animationName, phase, worldWidth])
 
   const publishMarkerAnchor = (spine: Spine) => {
-    spine.update(0)
-    const bounds = spine.getBounds()
-    if (bounds.width < 1 || bounds.height < 1) {
+    const anchor = readSpineMarkerAnchor(spine)
+    if (!Number.isFinite(anchor.centerX) || !Number.isFinite(anchor.footY)) {
       return
     }
 
-    const centerX = bounds.x + bounds.width / 2
-    const headY = bounds.y
-    const footY = bounds.y + bounds.height
-    setUnitWorldPosition(config.side, centerX, footY, headY)
+    setUnitWorldPosition(config.side, anchor.centerX, anchor.footY, anchor.headY)
   }
 
   useTick((delta) => {
@@ -365,6 +376,12 @@ export function BattleUnitActor({
     const profile = profileRef.current
     if (!spine || !isSpineAlive(spine)) {
       return
+    }
+
+    const trackMarker = () => {
+      if (!flyOutRef.current.active && spine.visible) {
+        publishMarkerAnchor(spine)
+      }
     }
 
     const entrance = entranceRef.current
@@ -375,6 +392,7 @@ export function BattleUnitActor({
 
       spine.x = entrance.startX + (entrance.endX - entrance.startX) * eased
       spine.y = entrance.y
+      trackMarker()
 
       if (progress >= 1) {
         entrance.active = false
@@ -397,6 +415,7 @@ export function BattleUnitActor({
       const eased = easeOutCubic(progress)
 
       spine.x = combatShift.startX + (combatShift.endX - combatShift.startX) * eased
+      trackMarker()
 
       if (progress >= 1) {
         combatShift.active = false
@@ -429,8 +448,11 @@ export function BattleUnitActor({
     }
 
     if (isDeadRef.current) {
-      publishMarkerAnchor(spine)
+      trackMarker()
+      return
     }
+
+    trackMarker()
   })
 
   return null
@@ -481,23 +503,6 @@ function playAnimation(
       },
     }
   }
-}
-
-function resolveFrontEdgeX(
-  spine: Spine,
-  targetFrontX: number,
-  scaleX: number,
-  facing: 'left' | 'right',
-) {
-  spine.update(0)
-  const bounds = spine.getLocalBounds()
-  const magnitude = Math.abs(scaleX)
-
-  if (facing === 'right') {
-    return targetFrontX - (bounds.x + bounds.width) * magnitude
-  }
-
-  return targetFrontX - bounds.x * magnitude
 }
 
 function easeOutCubic(value: number) {

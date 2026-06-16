@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 
 import { useGameSessionStore } from '../game/gameSessionStore'
 import { CHEST_TYPE_LABELS } from '../game/quest/quest.constants'
+import { STORY_FEATURE_KEYS, STORY_ITEM_LABELS } from '../game/quest/story.constants'
 import { PLAYER_COPY } from '../game/ui/playerCopy'
 import { resolveWorldMap } from '../game/world/resolveWorldMap'
 
@@ -31,6 +32,8 @@ export function JourneyQuestModal() {
   const mapPhase = quest.mapPhaseName ?? mapChapter.phaseName
   const mapKeywords = quest.mapKeywords ?? mapChapter.keywords
   const objectives = quest.objectives ?? []
+  const storyItems = (storyState?.storyItems ?? []).map((id) => STORY_ITEM_LABELS[id] ?? id)
+  const hasNoviceTitle = storyState?.unlockedFeatures?.includes(STORY_FEATURE_KEYS.titleNovice)
   const chestLabel = quest.rewards?.chestType
     ? CHEST_TYPE_LABELS[quest.rewards.chestType] ?? quest.rewards.chestType
     : null
@@ -87,6 +90,17 @@ export function JourneyQuestModal() {
               <h3>{PLAYER_COPY.questMapLandmarks}</h3>
               <p>{mapKeywords.join(' · ')}</p>
             </section>
+          )}
+
+          {storyItems.length > 0 && (
+            <section className="journey-modal__section">
+              <h3>{PLAYER_COPY.storyItems}</h3>
+              <p>{storyItems.join(' · ')}</p>
+            </section>
+          )}
+
+          {hasNoviceTitle && (
+            <p className="journey-modal__features">{PLAYER_COPY.titleNovice}</p>
           )}
 
           {lastOpponentName && (

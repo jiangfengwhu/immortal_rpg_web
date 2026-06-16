@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 
+import { startAfkSession, stopAfkSession, tickAfkSession, type AfkTickOutcome } from '../api/afk'
 import { equipItem, identifyItem } from '../api/equipment'
 import {
   advanceQuest,
@@ -21,9 +22,14 @@ import { toPlayerErrorMessage } from './ui/playerError'
 import { PLAYER_COPY } from './ui/playerCopy'
 import { useBattleStore } from '../battle/battleStore'
 import { buildLootFloat, type LootFloatPayload } from './loot/lootFloat'
+import type { HarvestFloatPayload } from './harvest/harvest.types'
+import { startHarvestLoop, stopHarvestLoop } from './harvest/harvestLoop'
+import { STORY_FEATURE_KEYS } from './quest/story.constants'
+import { useInfoFeedStore } from './infoFeed/infoFeedStore'
+import type { AfkTickResponse } from '../api/afk'
 
-function opponentNameFromResult(result: BattleResult) {
-  return result.bossName?.trim() || null
+function opponentNameFromState(state: PlayerFullState | null, fallback: string | null) {
+  return state?.opponentName?.trim() || fallback
 }
 
 export type SessionStatus = 'idle' | 'loading' | 'needs_create' | 'ready' | 'error'
@@ -38,6 +44,8 @@ type GameSessionStore = {
   inventoryOpen: boolean
   inventoryUnread: boolean
   lootFloat: LootFloatPayload | null
+  harvestFloat: HarvestFloatPayload | null
+  afkTickInFlight: boolean
   settingsOpen: boolean
   mapTravelOpen: boolean
   journeyModalOpen: boolean
@@ -50,6 +58,7 @@ type GameSessionStore = {
   claimBattleReward: () => Promise<BattleResult | null>
   toggleInventory: () => void
   clearLootFloat: () => void
+  clearHarvestFloat: () => void
   toggleSettings: () => void
   toggleMapTravel: () => void
   toggleJourneyModal: () => void
@@ -59,6 +68,10 @@ type GameSessionStore = {
   finishOnboarding: () => void
   syncInventoryItems: (items: Equipment[]) => void
   applyStoryEvent: (result: import('./quest/story.types').QuestEventResponse) => Promise<void>
+  startAfkGather: (feature: string) => Promise<AfkTickOutcome>
+  stopAfkGather: (feature: string) => Promise<AfkTickOutcome>
+  tickAfkGather: (feature: string) => Promise<AfkTickOutcome>
+  resumeAfkGatherLoop: (feature: string) => void
   equipItemById: (itemId: string) => Promise<void>
   identifyItemById: (itemId: string) => Promise<void>
   clearSession: () => void
@@ -72,6 +85,36 @@ function persistPlayerId(playerId: string) {
   localStorage.setItem(SESSION_STORAGE_KEY, playerId)
 }
 
+function applyAfkTickResponse(
+  feature: string,
+  response: AfkTickResponse,
+  get: () => GameSessionStore,
+  set: (partial: Partial<GameSessionStore>) => void,
+) {
+  const claim = response.claim
+  const loot = claim?.loot
+  const harvestFloat =
+    feature === STORY_FEATURE_KEYS.afkHerb && loot && loot.length > 0
+      ? { feature, items: loot.map((item) => ({ name: item.name, count: item.count })) }
+      : null
+
+  if (response.player) {
+    set({
+      playerState: response.player,
+      lastOpponentName: opponentNameFromState(response.player, get().lastOpponentName),
+      inventoryUnread: Boolean(loot?.length) || get().inventoryUnread,
+      harvestFloat: harvestFloat ?? get().harvestFloat,
+    })
+  } else if (harvestFloat) {
+    set({ harvestFloat, inventoryUnread: true })
+  }
+
+  return {
+    narrative: claim?.narrative ?? '',
+    loot,
+  }
+}
+
 export const useGameSessionStore = create<GameSessionStore>((set, get) => ({
   status: 'idle',
   playerState: null,
@@ -82,6 +125,8 @@ export const useGameSessionStore = create<GameSessionStore>((set, get) => ({
   inventoryOpen: false,
   inventoryUnread: false,
   lootFloat: null,
+  harvestFloat: null,
+  afkTickInFlight: false,
   settingsOpen: false,
   mapTravelOpen: false,
   journeyModalOpen: false,
@@ -96,7 +141,12 @@ export const useGameSessionStore = create<GameSessionStore>((set, get) => ({
     }
     try {
       const playerState = await fetchPlayer(storedId)
-      set({ status: 'ready', playerState, errorMessage: '' })
+      set({
+        status: 'ready',
+        playerState,
+        errorMessage: '',
+        lastOpponentName: opponentNameFromState(playerState, null),
+      })
       get().beginOnboardingIfNeeded()
     } catch (error) {
       if (isPlayerNotFoundError(error)) {
@@ -115,7 +165,10 @@ export const useGameSessionStore = create<GameSessionStore>((set, get) => ({
     const playerId = get().playerState?.player.id ?? readStoredPlayerId()
     if (!playerId) return
     const playerState = await fetchPlayer(playerId)
-    set({ playerState })
+    set({
+      playerState,
+      lastOpponentName: opponentNameFromState(playerState, get().lastOpponentName),
+    })
   },
 
   createCharacter: async (name, playerClass) => {
@@ -195,7 +248,7 @@ export const useGameSessionStore = create<GameSessionStore>((set, get) => ({
       set({
         playerState: nextState,
         lastBattleResult: result,
-        lastOpponentName: opponentNameFromResult(result) ?? get().lastOpponentName,
+        lastOpponentName: result.bossName?.trim() || opponentNameFromState(nextState, get().lastOpponentName),
         ...(lootFloat ? { inventoryUnread: true, lootFloat } : {}),
       })
       return result
@@ -214,6 +267,8 @@ export const useGameSessionStore = create<GameSessionStore>((set, get) => ({
     })),
 
   clearLootFloat: () => set({ lootFloat: null }),
+
+  clearHarvestFloat: () => set({ harvestFloat: null }),
 
   toggleSettings: () => set((state) => ({ settingsOpen: !state.settingsOpen })),
 
@@ -294,6 +349,89 @@ export const useGameSessionStore = create<GameSessionStore>((set, get) => ({
         quest: result.quest,
         storyState: result.storyState,
       },
+      lastOpponentName: opponentNameFromState(nextState, get().lastOpponentName),
+    })
+  },
+
+  clearHarvestFloat: () => set({ harvestFloat: null }),
+
+  tickAfkGather: async (feature) => {
+    const { playerState, afkTickInFlight } = get()
+    if (!playerState || afkTickInFlight) {
+      return { ok: false, message: '请稍后再试' }
+    }
+
+    set({ afkTickInFlight: true })
+    try {
+      const response = await tickAfkSession({ playerId: playerState.player.id, feature })
+      if (response.skipped) {
+        return { ok: true, skipped: true }
+      }
+      const { narrative, loot } = applyAfkTickResponse(feature, response, get, set)
+      return { ok: true, narrative, loot }
+    } catch (error) {
+      return {
+        ok: false,
+        message: toPlayerErrorMessage(error, '采集失败，请稍后再试'),
+      }
+    } finally {
+      set({ afkTickInFlight: false })
+    }
+  },
+
+  startAfkGather: async (feature) => {
+    const { playerState } = get()
+    if (!playerState) {
+      return { ok: false, message: '请稍后再试' }
+    }
+
+    try {
+      const response = await startAfkSession({ playerId: playerState.player.id, feature })
+      const { narrative, loot } = applyAfkTickResponse(feature, response, get, set)
+      const infoFeed = useInfoFeedStore.getState()
+      infoFeed.ensureActiveHarvestSession()
+      if (loot?.length) infoFeed.mergeHarvestLoot(loot)
+      get().resumeAfkGatherLoop(feature)
+      return { ok: true, narrative, loot }
+    } catch (error) {
+      return {
+        ok: false,
+        message: toPlayerErrorMessage(error, '无法开始采药'),
+      }
+    }
+  },
+
+  stopAfkGather: async (feature) => {
+    const { playerState } = get()
+    stopHarvestLoop()
+    if (!playerState) {
+      return { ok: true, narrative: '已停下采药。' }
+    }
+
+    try {
+      const response = await stopAfkSession({ playerId: playerState.player.id, feature })
+      if (response.player) {
+        set({
+          playerState: response.player,
+          lastOpponentName: opponentNameFromState(response.player, get().lastOpponentName),
+        })
+      }
+      return { ok: true, narrative: '已停下采药。' }
+    } catch (error) {
+      return {
+        ok: false,
+        message: toPlayerErrorMessage(error, '停止采药失败'),
+      }
+    }
+  },
+
+  resumeAfkGatherLoop: (feature) => {
+    stopHarvestLoop()
+    startHarvestLoop(() => {
+      void get().tickAfkGather(feature).then((outcome) => {
+        if (!outcome.ok || outcome.skipped || !outcome.loot?.length) return
+        useInfoFeedStore.getState().mergeHarvestLoot(outcome.loot)
+      })
     })
   },
 
@@ -328,6 +466,7 @@ export const useGameSessionStore = create<GameSessionStore>((set, get) => ({
   },
 
   clearSession: () => {
+    stopHarvestLoop()
     clearAllLocalGameProgress()
     useBattleStore.getState().resetBattleArena()
     set({
@@ -339,6 +478,8 @@ export const useGameSessionStore = create<GameSessionStore>((set, get) => ({
       inventoryOpen: false,
       inventoryUnread: false,
       lootFloat: null,
+      harvestFloat: null,
+      afkTickInFlight: false,
       settingsOpen: false,
       mapTravelOpen: false,
       journeyModalOpen: false,

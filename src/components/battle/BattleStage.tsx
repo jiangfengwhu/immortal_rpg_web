@@ -5,6 +5,7 @@ import { useWorldMapBackground } from '../../game/world/useWorldMapBackground'
 import { BattleDamageNumbers } from './BattleDamageNumbers'
 import { BattleUnitMarkers } from './BattleUnitMarkers'
 import { BattleLootToast } from './BattleLootToast'
+import { GameplayToast } from '../GameplayToast'
 import { BattleHud } from './BattleHud'
 import { BattleScene } from './BattleScene'
 import { StageMapView } from '../StageMapView'
@@ -64,6 +65,7 @@ export function BattleStage() {
       ) : (
         <StageMapView />
       )}
+      <GameplayToast />
     </section>
   )
 }

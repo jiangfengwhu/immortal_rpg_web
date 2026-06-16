@@ -8,6 +8,7 @@ type AnimationRole = keyof UnitAnimationSet
 export type UnitAnimationCapabilities = {
   death: boolean
   skill: boolean
+  ultimate: boolean
   run: boolean
 }
 
@@ -52,6 +53,7 @@ export function resolveUnitProfile(
   const runResolved = resolveRole(spineData, animations.run, 'run', true)
   const attack = resolveRole(spineData, animations.attack, 'attack', false)!
   const skillResolved = resolveRole(spineData, animations.skill, 'skill', true)
+  const ultimateResolved = resolveRole(spineData, animations.ultimate, 'ultimate', true)
   const hit = resolveRole(spineData, animations.hit, 'hit', false)!
   const deathResolved = resolveRole(spineData, animations.death, 'death', true)
 
@@ -60,6 +62,7 @@ export function resolveUnitProfile(
     run: runResolved ?? idle,
     attack,
     skill: skillResolved ?? attack,
+    ultimate: ultimateResolved ?? skillResolved ?? attack,
     hit,
     death: deathResolved ?? animations.death,
   }
@@ -72,6 +75,7 @@ export function resolveUnitProfile(
     capabilities: {
       death: deathResolved !== null,
       skill: skillResolved !== null,
+      ultimate: ultimateResolved !== null,
       run: runResolved !== null,
     },
     getDuration,
@@ -87,5 +91,13 @@ export function resolveBattleAnimation(
 }
 
 export function shouldLoopBattleAnimation(role: AnimationRole) {
-  return role === 'idle'
+  return role === 'idle' || role === 'run'
+}
+
+export function resolveActionAnimationRole(
+  kind: 'attack' | 'skill' | 'ultimate',
+): AnimationRole {
+  if (kind === 'ultimate') return 'ultimate'
+  if (kind === 'skill') return 'skill'
+  return 'attack'
 }

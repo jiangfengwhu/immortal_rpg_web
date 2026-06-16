@@ -1,7 +1,6 @@
 import { Stage } from '@pixi/react'
 import { useEffect } from 'react'
 
-import { ENEMY_BATTLE_UNIT, PLAYER_BATTLE_UNIT } from '../../battle/battle.constants'
 import { useBattleStore } from '../../battle/battleStore'
 import { SpineDisposalFlush } from '../SpineDisposalFlush'
 import { WorldBackground } from '../WorldBackground'
@@ -18,6 +17,8 @@ type BattleSceneProps = {
 export function BattleScene({ width, height, mapBackdrop = false }: BattleSceneProps) {
   const playerAnimation = useBattleStore((state) => state.playerAnimation)
   const enemyAnimation = useBattleStore((state) => state.enemyAnimation)
+  const playerUnit = useBattleStore((state) => state.playerUnit)
+  const enemyUnit = useBattleStore((state) => state.enemyUnit)
   const setUnitProfile = useBattleStore((state) => state.setUnitProfile)
   const setLoadError = useBattleStore((state) => state.setLoadError)
   const setArenaSize = useBattleStore((state) => state.setArenaSize)
@@ -45,7 +46,7 @@ export function BattleScene({ width, height, mapBackdrop = false }: BattleSceneP
       <BattleDirector />
       <BattleHitEffect worldWidth={width} worldHeight={height} />
       <BattleUnitActor
-        config={PLAYER_BATTLE_UNIT}
+        config={playerUnit}
         animationName={playerAnimation}
         worldWidth={width}
         worldHeight={height}
@@ -56,7 +57,7 @@ export function BattleScene({ width, height, mapBackdrop = false }: BattleSceneP
         onError={(message) => setLoadError(message)}
       />
       <BattleUnitActor
-        config={ENEMY_BATTLE_UNIT}
+        config={enemyUnit}
         animationName={enemyAnimation}
         worldWidth={width}
         worldHeight={height}
