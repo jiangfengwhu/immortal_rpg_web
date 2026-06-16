@@ -9,6 +9,7 @@ import { resolveUnitProfile, shouldLoopBattleAnimation } from '../../battle/reso
 import type { BattleUnitConfig } from '../../battle/battle.types'
 import { useBattleStore } from '../../battle/battleStore'
 import { loadSpineAsset } from '../../game/loadSpineAsset'
+import { PLAYER_COPY } from '../../game/ui/playerCopy'
 import { isSpineAlive, queueDisposeSpine } from '../../game/spineLifecycle'
 
 type BattleUnitActorProps = {
@@ -205,6 +206,7 @@ export function BattleUnitActor({
     spine.y = fight.y
     syncHomeFromSpine(spine, homeRef)
     playAnimation(spine, profile, profile.animations.idle, isDeadRef, { homeRef })
+    publishMarkerAnchor(spine)
   }
 
   useEffect(() => {
@@ -246,8 +248,7 @@ export function BattleUnitActor({
           return
         }
 
-        const message = error instanceof Error ? error.message : 'Spine 加载失败'
-        callbacksRef.current.onError(message)
+        callbacksRef.current.onError(PLAYER_COPY.actorLoadFailed)
       }
     }
 
@@ -310,6 +311,7 @@ export function BattleUnitActor({
     spine.x = fight.x
     spine.y = fight.y
     syncHomeFromSpine(spine, homeRef)
+    publishMarkerAnchor(spine)
   }, [config, worldHeight, worldWidth])
 
   useEffect(() => {
@@ -345,6 +347,19 @@ export function BattleUnitActor({
     }
   }, [animationName, phase, worldWidth])
 
+  const publishMarkerAnchor = (spine: Spine) => {
+    spine.update(0)
+    const bounds = spine.getBounds()
+    if (bounds.width < 1 || bounds.height < 1) {
+      return
+    }
+
+    const centerX = bounds.x + bounds.width / 2
+    const headY = bounds.y
+    const footY = bounds.y + bounds.height
+    setUnitWorldPosition(config.side, centerX, footY, headY)
+  }
+
   useTick((delta) => {
     const spine = spineRef.current
     const profile = profileRef.current
@@ -369,6 +384,7 @@ export function BattleUnitActor({
           homeRef,
           onReturnHome: () => startCombatReturn(spine),
         })
+        publishMarkerAnchor(spine)
         markEntranceComplete(config.side)
       }
       return
@@ -385,29 +401,35 @@ export function BattleUnitActor({
       if (progress >= 1) {
         combatShift.active = false
         spine.x = combatShift.endX
+        if (Math.abs(combatShift.endX - homeRef.current.x) < 1) {
+          publishMarkerAnchor(spine)
+        }
       }
       return
     }
 
     const flyOut = flyOutRef.current
-    if (!flyOut.active) {
-      setUnitWorldPosition(config.side, spine.x, spine.y)
+    if (flyOut.active) {
+      flyOut.elapsed += (delta / 60) * 1000
+      const progress = Math.min(flyOut.elapsed / FLYOUT_DURATION_MS, 1)
+      const home = homeRef.current
+      const exitDirection = config.side === 'player' ? -1 : 1
+
+      spine.x = home.x + exitDirection * progress * worldWidth * 0.42
+      spine.y = home.y - Math.sin(progress * Math.PI) * 96 - progress * 28
+      spine.alpha = 1 - progress * 0.95
+      spine.rotation = exitDirection * progress * 0.55
+      publishMarkerAnchor(spine)
+
+      if (progress >= 1) {
+        flyOut.active = false
+        spine.visible = false
+      }
       return
     }
 
-    flyOut.elapsed += (delta / 60) * 1000
-    const progress = Math.min(flyOut.elapsed / FLYOUT_DURATION_MS, 1)
-    const home = homeRef.current
-    const exitDirection = config.side === 'player' ? -1 : 1
-
-    spine.x = home.x + exitDirection * progress * worldWidth * 0.42
-    spine.y = home.y - Math.sin(progress * Math.PI) * 96 - progress * 28
-    spine.alpha = 1 - progress * 0.95
-    spine.rotation = exitDirection * progress * 0.55
-
-    if (progress >= 1) {
-      flyOut.active = false
-      spine.visible = false
+    if (isDeadRef.current) {
+      publishMarkerAnchor(spine)
     }
   })
 

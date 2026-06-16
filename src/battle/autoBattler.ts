@@ -1,5 +1,5 @@
-import { ACTION_GAUGE_THRESHOLD, ENEMY_BATTLE_UNIT, PLAYER_BATTLE_UNIT } from './battle.constants'
-import type { BattleActionKind, BattleEvent, BattleSide, BattleSnapshot } from './battle.types'
+import { ACTION_GAUGE_THRESHOLD } from './battle.constants'
+import type { BattleActionKind, BattleEvent, BattleSide, BattleSnapshot, BattleUnitConfig } from './battle.types'
 
 type UnitRuntime = {
   hp: number
@@ -28,20 +28,31 @@ function pickAction(unit: UnitRuntime): BattleActionKind {
   if (unit.skillCooldown <= 0 && Math.random() < 0.38) {
     return 'skill'
   }
-
   return 'attack'
 }
 
-function getDamage(kind: BattleActionKind, attack: number, skillPower: number) {
-  const base = kind === 'skill' ? skillPower : attack
+function getDamage(
+  kind: BattleActionKind,
+  config: BattleUnitConfig,
+) {
+  let base: number
+  if (kind === 'skill') {
+    base = config.useMagicDamage ? config.spiritPower : Math.round(config.attack * 1.35)
+  } else {
+    base = config.attack
+  }
   const variance = 0.88 + Math.random() * 0.24
   return Math.max(1, Math.round(base * variance))
 }
 
 export class AutoBattler {
   private state: AutoBattlerState
+  private playerConfig: BattleUnitConfig
+  private enemyConfig: BattleUnitConfig
 
-  constructor() {
+  constructor(playerConfig: BattleUnitConfig, enemyConfig: BattleUnitConfig) {
+    this.playerConfig = playerConfig
+    this.enemyConfig = enemyConfig
     this.state = this.createInitialState()
   }
 
@@ -68,8 +79,8 @@ export class AutoBattler {
       return []
     }
 
-    this.state.player.gauge += PLAYER_BATTLE_UNIT.speed
-    this.state.enemy.gauge += ENEMY_BATTLE_UNIT.speed
+    this.state.player.gauge += this.playerConfig.speed
+    this.state.enemy.gauge += this.enemyConfig.speed
 
     if (this.state.player.skillCooldown > 0) {
       this.state.player.skillCooldown -= 1
@@ -83,18 +94,10 @@ export class AutoBattler {
 
     while (!this.state.finished && safety < 4) {
       safety += 1
-
       const actor = this.pickActor()
-      if (!actor) {
-        break
-      }
-
-      const roundEvents = this.executeAction(actor)
-      events.push(...roundEvents)
-
-      if (this.state.finished) {
-        break
-      }
+      if (!actor) break
+      events.push(...this.executeAction(actor))
+      if (this.state.finished) break
     }
 
     return events
@@ -102,8 +105,8 @@ export class AutoBattler {
 
   private createInitialState(): AutoBattlerState {
     return {
-      player: createRuntime(PLAYER_BATTLE_UNIT.maxHp),
-      enemy: createRuntime(ENEMY_BATTLE_UNIT.maxHp),
+      player: createRuntime(this.playerConfig.maxHp),
+      enemy: createRuntime(this.enemyConfig.maxHp),
       turn: 0,
       log: [],
       winner: null,
@@ -114,44 +117,31 @@ export class AutoBattler {
   private pickActor(): BattleSide | null {
     const playerReady = this.state.player.gauge >= ACTION_GAUGE_THRESHOLD
     const enemyReady = this.state.enemy.gauge >= ACTION_GAUGE_THRESHOLD
-
-    if (!playerReady && !enemyReady) {
-      return null
-    }
-
+    if (!playerReady && !enemyReady) return null
     if (playerReady && enemyReady) {
       return this.state.player.gauge >= this.state.enemy.gauge ? 'player' : 'enemy'
     }
-
     return playerReady ? 'player' : 'enemy'
   }
 
   private executeAction(actor: BattleSide): BattleEvent[] {
     const actorRuntime = actor === 'player' ? this.state.player : this.state.enemy
     const targetRuntime = actor === 'player' ? this.state.enemy : this.state.player
-    const actorConfig = actor === 'player' ? PLAYER_BATTLE_UNIT : ENEMY_BATTLE_UNIT
-    const targetConfig = actor === 'player' ? ENEMY_BATTLE_UNIT : PLAYER_BATTLE_UNIT
+    const actorConfig = actor === 'player' ? this.playerConfig : this.enemyConfig
+    const targetConfig = actor === 'player' ? this.enemyConfig : this.playerConfig
     const target: BattleSide = actor === 'player' ? 'enemy' : 'player'
 
     actorRuntime.gauge -= ACTION_GAUGE_THRESHOLD
     this.state.turn += 1
 
     const kind = pickAction(actorRuntime)
-    const damage = getDamage(kind, actorConfig.attack, actorConfig.skillPower)
+    const damage = getDamage(kind, actorConfig)
 
     if (kind === 'skill') {
       actorRuntime.skillCooldown = actorConfig.skillCooldown
     }
 
     targetRuntime.hp = Math.max(0, targetRuntime.hp - damage)
-
-    const actionLabel = kind === 'skill' ? '施放技能' : '普通攻击'
-    this.state.log.unshift(
-      `第 ${this.state.turn} 回合 · ${actorConfig.label} ${actionLabel}，${targetConfig.label} 受到 ${damage} 点伤害`,
-    )
-    if (this.state.log.length > 8) {
-      this.state.log.length = 8
-    }
 
     const events: BattleEvent[] = [
       { type: 'ACTION', actor, kind },
@@ -163,7 +153,6 @@ export class AutoBattler {
       this.state.finished = true
       this.state.winner = actor
       events.push({ type: 'VICTORY', winner: actor })
-      this.state.log.unshift(`${actorConfig.label} 取得胜利！`)
     }
 
     return events

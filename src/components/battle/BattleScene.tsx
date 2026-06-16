@@ -1,5 +1,5 @@
 import { Stage } from '@pixi/react'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 
 import { ENEMY_BATTLE_UNIT, PLAYER_BATTLE_UNIT } from '../../battle/battle.constants'
 import { useBattleStore } from '../../battle/battleStore'
@@ -9,8 +9,13 @@ import { BattleDirector } from './BattleDirector'
 import { BattleHitEffect } from './BattleHitEffect'
 import { BattleUnitActor } from './BattleUnitActor'
 
-export function BattleScene() {
-  const [viewport, setViewport] = useState(getViewportSize)
+type BattleSceneProps = {
+  width: number
+  height: number
+  mapBackdrop?: boolean
+}
+
+export function BattleScene({ width, height, mapBackdrop = false }: BattleSceneProps) {
   const playerAnimation = useBattleStore((state) => state.playerAnimation)
   const enemyAnimation = useBattleStore((state) => state.enemyAnimation)
   const setUnitProfile = useBattleStore((state) => state.setUnitProfile)
@@ -18,21 +23,16 @@ export function BattleScene() {
   const setArenaSize = useBattleStore((state) => state.setArenaSize)
 
   useEffect(() => {
-    const onResize = () => {
-      const nextViewport = getViewportSize()
-      setViewport(nextViewport)
-      setArenaSize(nextViewport.width, nextViewport.height)
-    }
+    if (width < 1 || height < 1) return
+    setArenaSize(width, height)
+  }, [height, setArenaSize, width])
 
-    setArenaSize(viewport.width, viewport.height)
-    window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
-  }, [setArenaSize, viewport.height, viewport.width])
+  if (width < 1 || height < 1) return null
 
   return (
     <Stage
-      width={viewport.width}
-      height={viewport.height}
+      width={width}
+      height={height}
       options={{
         backgroundAlpha: 0,
         antialias: true,
@@ -40,15 +40,15 @@ export function BattleScene() {
         autoDensity: true,
       }}
     >
-      <WorldBackground width={viewport.width} height={viewport.height} />
+      <WorldBackground width={width} height={height} transparent={mapBackdrop} />
       <SpineDisposalFlush />
       <BattleDirector />
-      <BattleHitEffect worldWidth={viewport.width} worldHeight={viewport.height} />
+      <BattleHitEffect worldWidth={width} worldHeight={height} />
       <BattleUnitActor
         config={PLAYER_BATTLE_UNIT}
         animationName={playerAnimation}
-        worldWidth={viewport.width}
-        worldHeight={viewport.height}
+        worldWidth={width}
+        worldHeight={height}
         onReady={({ profile }) => {
           setUnitProfile('player', profile)
           setLoadError(null)
@@ -58,18 +58,11 @@ export function BattleScene() {
       <BattleUnitActor
         config={ENEMY_BATTLE_UNIT}
         animationName={enemyAnimation}
-        worldWidth={viewport.width}
-        worldHeight={viewport.height}
+        worldWidth={width}
+        worldHeight={height}
         onReady={({ profile }) => setUnitProfile('enemy', profile)}
         onError={(message) => setLoadError(message)}
       />
     </Stage>
   )
-}
-
-function getViewportSize() {
-  return {
-    width: window.innerWidth,
-    height: window.innerHeight,
-  }
 }

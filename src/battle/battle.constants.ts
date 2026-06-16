@@ -30,7 +30,7 @@ export const BATTLE_HIT_EFFECT = {
 export const PLAYER_BATTLE_UNIT: BattleUnitConfig = {
   side: 'player',
   id: 'sanim_1001',
-  label: '仙灵·1001',
+  label: '修真者',
   skeleton: '/放置觉醒spine/sanim/sanim_1001/sanim_1001.json',
   scale: 0.54,
   fitHeightWeight: 0.46,
@@ -41,7 +41,8 @@ export const PLAYER_BATTLE_UNIT: BattleUnitConfig = {
   combatAdvanceRatio: 0.03,
   maxHp: 1200,
   attack: 95,
-  skillPower: 150,
+  defense: 3,
+  spiritPower: 150,
   speed: 22,
   skillCooldown: 3,
   animations: {
@@ -57,7 +58,7 @@ export const PLAYER_BATTLE_UNIT: BattleUnitConfig = {
 export const ENEMY_BATTLE_UNIT: BattleUnitConfig = {
   side: 'enemy',
   id: 'H30001',
-  label: '洪荒·H30001',
+  label: '关外妖兽',
   skeleton: '/洪荒仙灵录/H30001/H30001.skel',
   scale: 0.34,
   fitHeightWeight: 0.36,
@@ -68,7 +69,8 @@ export const ENEMY_BATTLE_UNIT: BattleUnitConfig = {
   combatAdvanceRatio: 0.025,
   maxHp: 980,
   attack: 88,
-  skillPower: 132,
+  defense: 5,
+  spiritPower: 132,
   speed: 18,
   skillCooldown: 3,
   animations: {

@@ -32,9 +32,12 @@ export type BattleUnitConfig = {
   combatAdvanceRatio: number
   maxHp: number
   attack: number
-  skillPower: number
+  defense: number
+  spiritPower: number
   speed: number
   skillCooldown: number
+  /** 法术流派：技能伤害走灵力公式 */
+  useMagicDamage?: boolean
   animations: UnitAnimationSet
 }
 

@@ -11,8 +11,45 @@ import {
   useBattleStore,
   type BattleEvent,
 } from '../../battle/battleStore'
+import type { BattleSide } from '../../battle/battle.types'
+import type { ResolvedUnitProfile } from '../../battle/resolveBattleAnimation'
 
 const sleep = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms))
+
+type DeathPlayback = {
+  hasDeathAnimation: boolean
+  durationMs: number
+}
+
+function resolveDeathPlayback(
+  side: BattleSide,
+  unitProfiles: Partial<Record<BattleSide, ResolvedUnitProfile>>,
+): DeathPlayback {
+  const profile = unitProfiles[side]
+  const hasDeathAnimation = profile?.capabilities.death ?? false
+  return {
+    hasDeathAnimation,
+    durationMs: getDeathDurationMs(hasDeathAnimation, profile?.getDuration('death') ?? 0),
+  }
+}
+
+function beginUnitDeath(
+  side: BattleSide,
+  unitProfiles: Partial<Record<BattleSide, ResolvedUnitProfile>>,
+  setUnitAnimation: (side: BattleSide, animation: string) => void,
+  triggerUnitDeath: (payload: { side: BattleSide; mode: 'animation' | 'flyout' }) => void,
+) {
+  const profile = unitProfiles[side]
+  const playback = resolveDeathPlayback(side, unitProfiles)
+
+  if (playback.hasDeathAnimation && profile) {
+    setUnitAnimation(side, profile.animations.death)
+    triggerUnitDeath({ side, mode: 'animation' })
+    return
+  }
+
+  triggerUnitDeath({ side, mode: 'flyout' })
+}
 
 export function BattleDirector() {
   const phase = useBattleStore((state) => state.phase)
@@ -56,17 +93,42 @@ export function BattleDirector() {
 
       await sleep(strikeMs)
       if (isStale()) {
-        return
+        return { handledDeath: false }
+      }
+
+      triggerHitEffect({ actor: action.actor, target: hit.target, kind: action.kind })
+      useBattleStore.getState().pushDamagePopup({
+        target: hit.target,
+        damage: hit.damage,
+        kind: action.kind,
+      })
+      applySnapshot()
+
+      const isLethal = hit.remainingHp <= 0
+      if (isLethal) {
+        beginUnitDeath(hit.target, unitProfiles, setUnitAnimation, triggerUnitDeath)
+        const deathMs = resolveDeathPlayback(hit.target, unitProfiles).durationMs
+        const attackTailMs = Math.max(0, actionMs - strikeMs)
+
+        await Promise.all([sleep(attackTailMs), sleep(deathMs)])
+        if (isStale()) {
+          return { handledDeath: true }
+        }
+
+        if (!sim.isFinished()) {
+          const actorIdle = actorProfile?.animations.idle ?? actorConfig.animations.idle
+          setUnitAnimation(action.actor, actorIdle)
+        }
+
+        return { handledDeath: true }
       }
 
       const hitAnimation = targetProfile?.animations.hit ?? targetConfig.animations.hit
       setUnitAnimation(hit.target, hitAnimation)
-      triggerHitEffect({ actor: action.actor, target: hit.target, kind: action.kind })
-      applySnapshot()
 
       await sleep(Math.max(0, actionMs - strikeMs))
       if (isStale()) {
-        return
+        return { handledDeath: false }
       }
 
       if (!sim.isFinished()) {
@@ -76,13 +138,12 @@ export function BattleDirector() {
 
       await sleep(BATTLE_TIMING.hitDelayMs)
       if (isStale()) {
-        return
+        return { handledDeath: false }
       }
 
-      if (!sim.isFinished() && hit.remainingHp > 0) {
-        const targetIdle = targetProfile?.animations.idle ?? targetConfig.animations.idle
-        setUnitAnimation(hit.target, targetIdle)
-      }
+      const targetIdle = targetProfile?.animations.idle ?? targetConfig.animations.idle
+      setUnitAnimation(hit.target, targetIdle)
+      return { handledDeath: false }
     }
 
     const processEvent = async (event: BattleEvent) => {
@@ -112,6 +173,11 @@ export function BattleDirector() {
         const profile = unitProfiles[event.target]
         const animation = profile?.animations.hit ?? config.animations.hit
         setUnitAnimation(event.target, animation)
+        useBattleStore.getState().pushDamagePopup({
+          target: event.target,
+          damage: event.damage,
+          kind: 'attack',
+        })
         applySnapshot()
         await sleep(BATTLE_TIMING.hitDelayMs)
 
@@ -123,18 +189,9 @@ export function BattleDirector() {
       }
 
       if (event.type === 'DEATH') {
-        const profile = unitProfiles[event.side]
-        const hasDeathAnimation = profile?.capabilities.death ?? false
-
-        if (hasDeathAnimation) {
-          const deathAnimation = profile!.animations.death
-          setUnitAnimation(event.side, deathAnimation)
-          triggerUnitDeath({ side: event.side, mode: 'animation' })
-          await sleep(getDeathDurationMs(true, profile!.getDuration('death')))
-        } else {
-          triggerUnitDeath({ side: event.side, mode: 'flyout' })
-          await sleep(getDeathDurationMs(false, 0))
-        }
+        const playback = resolveDeathPlayback(event.side, unitProfiles)
+        beginUnitDeath(event.side, unitProfiles, setUnitAnimation, triggerUnitDeath)
+        await sleep(playback.durationMs)
         return
       }
 
@@ -153,9 +210,19 @@ export function BattleDirector() {
         const nextEvent = events[index + 1]
 
         if (event.type === 'ACTION' && nextEvent?.type === 'HIT') {
-          await processActionWithHit(event, nextEvent)
+          const { handledDeath } = await processActionWithHit(event, nextEvent)
           index += 1
+          if (handledDeath && events[index + 1]?.type === 'DEATH') {
+            index += 1
+          }
           continue
+        }
+
+        if (event.type === 'DEATH') {
+          const previousHit = events[index - 1]
+          if (previousHit?.type === 'HIT' && previousHit.remainingHp <= 0) {
+            continue
+          }
         }
 
         await processEvent(event)

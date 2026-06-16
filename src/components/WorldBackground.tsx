@@ -5,12 +5,17 @@ import { useCallback } from 'react'
 type WorldBackgroundProps = {
   width: number
   height: number
+  transparent?: boolean
 }
 
-export function WorldBackground({ width, height }: WorldBackgroundProps) {
+export function WorldBackground({ width, height, transparent = false }: WorldBackgroundProps) {
   const drawBackground = useCallback(
     (graphics: PixiGraphics) => {
       graphics.clear()
+
+      if (transparent) {
+        return
+      }
 
       graphics.beginFill(0x0d1b22)
       graphics.drawRect(0, 0, width, height)
@@ -44,7 +49,7 @@ export function WorldBackground({ width, height }: WorldBackgroundProps) {
       graphics.drawEllipse(width * 0.78, height * 0.18, width * 0.12, height * 0.08)
       graphics.endFill()
     },
-    [height, width],
+    [height, transparent, width],
   )
 
   return <Graphics draw={drawBackground} />
