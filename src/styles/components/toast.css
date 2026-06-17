@@ -11,34 +11,36 @@
   width: min(420px, calc(100% - 32px));
 }
 
+/* 提示条 · 宣纸卷轴 */
 .gameplay-toast {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
   padding: 10px 16px;
   border-radius: var(--radius-md);
-  background: rgba(14, 20, 28, 0.95);
-  border: 1px solid var(--ink-border);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  background: rgba(247, 240, 228, 0.95);
+  border: 1px solid var(--ink-stroke-strong);
+  box-shadow: 0 8px 24px rgba(42, 38, 34, 0.16);
   font-size: 0.82rem;
   color: var(--text-secondary);
   pointer-events: auto;
   animation: toast-in 0.3s var(--ease-out);
+  font-family: var(--font-serif);
 }
 
 .gameplay-toast--success {
-  border-color: rgba(52, 211, 153, 0.35);
+  border-color: rgba(74, 122, 100, 0.4);
   color: var(--emerald);
 }
 
 .gameplay-toast--warn {
-  border-color: rgba(245, 158, 11, 0.35);
-  color: var(--gold-300);
+  border-color: rgba(168, 138, 72, 0.4);
+  color: var(--gold-600);
 }
 
 .gameplay-toast--danger {
-  border-color: rgba(220, 74, 58, 0.35);
-  color: #fca5a5;
+  border-color: rgba(168, 60, 50, 0.4);
+  color: var(--cinnabar);
 }
 
 .gameplay-toast--persistent {
@@ -49,7 +51,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--gold-400);
+  background: var(--gold-500);
   animation: pulse-dot 1s ease-in-out infinite;
   flex-shrink: 0;
 }

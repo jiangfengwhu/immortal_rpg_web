@@ -13,7 +13,7 @@ export function GameTopBar() {
   return (
     <header className="game-topbar">
       <div className="game-topbar__brand">
-        <img className="game-topbar__logo" src="/logo.jpg" alt="" />
+        <span className="game-topbar__logo" aria-hidden>梦</span>
         <span className="game-topbar__title">{PLAYER_COPY.gameTitle}</span>
       </div>
 

@@ -283,25 +283,22 @@ export function PlayerCommandHub() {
       )}
 
       <div className="command-hub__panel">
+        {storyState?.activeAdventure && (
+          <div className="adventure-banner">
+            <span className="adventure-banner__seal">仙缘奇遇</span>
+            <div className="adventure-banner__body">
+              <h4 className="adventure-banner__title">{storyState.activeAdventure.title}</h4>
+              <p className="adventure-banner__desc">{storyState.activeAdventure.description}</p>
+            </div>
+            <span className="adventure-banner__hint">决断 →</span>
+          </div>
+        )}
+
         <CommandHubInfoFeed
           timeline={feedTimeline}
           objectives={objectives}
           onStopHarvest={harvestActive ? handleStopHarvest : undefined}
         />
-
-        {storyState?.activeAdventure && (
-          <div className="adventure-overlay">
-            <div className="adventure-card">
-              <div className="adventure-card__glow" />
-              <div className="adventure-card__header">
-                <span className="adventure-card__tag">仙缘奇遇</span>
-                <h4 className="adventure-card__title">{storyState.activeAdventure.title}</h4>
-              </div>
-              <p className="adventure-card__desc">{storyState.activeAdventure.description}</p>
-              <p className="adventure-card__prompt">—— 请做出你的仙途决断 ——</p>
-            </div>
-          </div>
-        )}
 
         {actions.length > 0 && (
           <div className="command-hub__actions" role="group" aria-label={PLAYER_COPY.commandHubActions}>

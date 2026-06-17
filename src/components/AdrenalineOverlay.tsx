@@ -16,20 +16,21 @@ export function AdrenalineOverlay() {
 
   if (!event || !active) return null
 
+  // 品级色 · 水墨淡彩（实色 hex，用于 alpha 后缀拼接）
   const getRarityColor = (rarity?: string) => {
     switch (rarity) {
       case 'mythic':
-        return '#ff4d6a' // Red
+        return '#9c3a30' // 朱砂
       case 'legendary':
       case 'divine':
-        return '#ff9a2e' // Gold/Amber
+        return '#8a6a3a' // 赭金
       case 'epic':
       case 'mutated':
-        return '#b06aff' // Purple
+        return '#6a5a7a' // 淡墨紫
       case 'rare':
-        return '#5a9fff' // Blue/Cyan
+        return '#4a6874' // 花青
       default:
-        return '#34d399' // Emerald Green
+        return '#4a7a64' // 苍翠
     }
   }
 
@@ -45,7 +46,7 @@ export function AdrenalineOverlay() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.82)',
+        backgroundColor: 'rgba(54, 48, 42, 0.72)',
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
         overflow: 'hidden',
@@ -60,10 +61,10 @@ export function AdrenalineOverlay() {
           left: 'calc(50% - 120px)',
           width: '240px',
           height: '100%',
-          background: `linear-gradient(to top, transparent, ${color}33, ${color}cc, ${color}33, transparent)`,
+          background: `linear-gradient(to top, transparent, ${color}33, ${color}aa, ${color}33, transparent)`,
           pointerEvents: 'none',
           zIndex: 1,
-          mixBlendMode: 'screen',
+          mixBlendMode: 'multiply',
           animation: 'light-beam-rise 2.5s infinite linear',
         }}
       />
@@ -75,28 +76,29 @@ export function AdrenalineOverlay() {
           width: '560px',
           height: '560px',
           borderRadius: '50%',
-          border: `2px dashed ${color}33`,
-          background: `radial-gradient(circle, ${color}0c 0%, transparent 70%)`,
+          border: `2px dashed ${color}40`,
+          background: `radial-gradient(circle, ${color}12 0%, transparent 70%)`,
           pointerEvents: 'none',
           zIndex: 0,
           animation: 'aura-spin 15s infinite linear',
         }}
       />
 
-      {/*翻牌卡片*/}
+      {/*翻牌卡片 · 宣纸卷轴*/}
       <div
         style={{
           position: 'relative',
           zIndex: 10,
           width: '380px',
-          backgroundColor: '#0a0d14',
+          backgroundColor: 'var(--paper-white)',
           border: `2px solid ${color}`,
-          borderRadius: '16px',
+          borderRadius: '12px',
           padding: '28px',
-          boxShadow: `0 20px 60px rgba(0, 0, 0, 0.8), 0 0 30px ${color}44, inset 0 0 20px ${color}1a`,
+          boxShadow: `0 20px 60px rgba(42, 38, 34, 0.25), 0 0 30px ${color}44, inset 0 0 20px ${color}14`,
           animation: 'card-reveal-flip 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) both',
           textAlign: 'center',
           boxSizing: 'border-box',
+          fontFamily: 'var(--font-serif)',
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -105,24 +107,23 @@ export function AdrenalineOverlay() {
           style={{
             position: 'absolute',
             inset: '-2px',
-            borderRadius: '16px',
+            borderRadius: '12px',
             background: `linear-gradient(135deg, transparent, ${color}, transparent, ${color}, transparent)`,
             zIndex: -1,
-            opacity: 0.4,
+            opacity: 0.3,
             pointerEvents: 'none',
           }}
         />
 
         {/*标题*/}
         <h2
-          className="glow-text--gold"
           style={{
             margin: '0 0 6px 0',
             fontSize: '1.75rem',
             fontWeight: 800,
             letterSpacing: '2px',
-            color: '#fff',
-            textShadow: `0 0 10px ${color}, 0 0 20px ${color}66`,
+            color: 'var(--ink-deep)',
+            textShadow: `0 0 10px ${color}55`,
           }}
         >
           {event.title}
@@ -131,7 +132,7 @@ export function AdrenalineOverlay() {
           style={{
             margin: '0 0 24px 0',
             fontSize: '0.875rem',
-            color: '#94a3b8',
+            color: 'var(--text-secondary)',
             letterSpacing: '1px',
           }}
         >
@@ -146,9 +147,9 @@ export function AdrenalineOverlay() {
             alignItems: 'center',
             justifyContent: 'center',
             height: '140px',
-            backgroundColor: 'rgba(255,255,255,0.02)',
-            border: '1px solid rgba(255,255,255,0.05)',
-            borderRadius: '12px',
+            backgroundColor: 'rgba(54, 48, 42, 0.04)',
+            border: '1px solid var(--ink-stroke)',
+            borderRadius: '10px',
             marginBottom: '20px',
             padding: '16px',
             position: 'relative',
@@ -161,7 +162,7 @@ export function AdrenalineOverlay() {
               <span
                 style={{
                   fontSize: '2.5rem',
-                  textShadow: '0 0 15px #eab308',
+                  textShadow: `0 0 15px ${color}88`,
                   marginBottom: '8px',
                   animation: 'adventure-pulse 2s infinite alternate ease-in-out',
                 }}
@@ -171,13 +172,13 @@ export function AdrenalineOverlay() {
               <strong
                 style={{
                   fontSize: '1.35rem',
-                  color: '#fbbf24',
-                  textShadow: '0 0 8px rgba(251, 191, 36, 0.4)',
+                  color: 'var(--gold-600)',
+                  textShadow: `0 0 8px ${color}66`,
                 }}
               >
                 《{event.name}》
               </strong>
-              <span style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
                 传世绝学 · 终生受用
               </span>
             </div>
@@ -195,7 +196,7 @@ export function AdrenalineOverlay() {
                 ⚔️
               </span>
               <strong style={{ fontSize: '1.35rem', color: color }}>{event.name}</strong>
-              <span style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
                 稀有神兵 · 战力暴涨
               </span>
             </div>
@@ -220,11 +221,11 @@ export function AdrenalineOverlay() {
                       key={idx}
                       style={{
                         fontSize: '0.72rem',
-                        backgroundColor: 'rgba(255,255,255,0.06)',
-                        border: `1px solid ${color}44`,
+                        backgroundColor: 'rgba(54, 48, 42, 0.05)',
+                        border: `1px solid ${color}55`,
                         borderRadius: '4px',
                         padding: '1px 6px',
-                        color: '#cbd5e1',
+                        color: 'var(--text-secondary)',
                       }}
                     >
                       {s}
@@ -241,8 +242,8 @@ export function AdrenalineOverlay() {
           style={{
             margin: '0 0 28px 0',
             fontSize: '0.925rem',
-            color: '#cbd5e1',
-            lineHeight: 1.6,
+            color: 'var(--text-secondary)',
+            lineHeight: 1.7,
             fontStyle: 'italic',
             minHeight: '44px',
             display: 'flex',
@@ -254,30 +255,31 @@ export function AdrenalineOverlay() {
           {event.narrative}
         </p>
 
-        {/*收下按钮*/}
+        {/*收下按钮 · 朱砂落墨*/}
         <button
           type="button"
           style={{
             width: '100%',
             padding: '12px',
-            background: `linear-gradient(90deg, ${color}cc, ${color})`,
-            color: '#fff',
+            background: `linear-gradient(90deg, ${color}dd, ${color})`,
+            color: 'var(--paper-white)',
             border: 'none',
-            borderRadius: '8px',
+            borderRadius: '6px',
             fontSize: '1.05rem',
             fontWeight: 'bold',
             letterSpacing: '4px',
             cursor: 'pointer',
-            boxShadow: `0 0 15px ${color}55`,
+            boxShadow: `0 2px 10px ${color}55`,
             transition: 'transform 0.15s, box-shadow 0.15s',
+            fontFamily: 'var(--font-serif)',
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.transform = 'scale(1.03)'
-            e.currentTarget.style.boxShadow = `0 0 25px ${color}`
+            e.currentTarget.style.boxShadow = `0 4px 16px ${color}`
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.transform = 'scale(1)'
-            e.currentTarget.style.boxShadow = `0 0 15px ${color}55`
+            e.currentTarget.style.boxShadow = `0 2px 10px ${color}55`
           }}
           onClick={(e) => {
             e.stopPropagation()

@@ -8,7 +8,7 @@
 .character-panel__header {
   padding: var(--space-md);
   padding-bottom: var(--space-md);
-  border-bottom: 1px solid var(--ink-border);
+  border-bottom: 1px solid var(--ink-stroke);
   flex-shrink: 0;
 }
 
@@ -27,13 +27,14 @@
 .character-panel__name {
   margin: 0 0 2px;
   font-size: 1.25rem;
+  font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .character-panel__title-badge {
-  color: var(--gold-300);
+  color: var(--gold-500);
   font-size: 0.78rem;
   margin: 0 0 4px;
   font-weight: 500;
@@ -47,7 +48,7 @@
 
 .character-panel__realm-value {
   font-size: 0.82rem;
-  color: var(--gold-300);
+  color: var(--gold-600);
   font-weight: 600;
 }
 
@@ -56,10 +57,10 @@
   grid-template-columns: repeat(3, 38px);
   grid-template-rows: repeat(3, 38px);
   gap: 4px;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(54, 48, 42, 0.05);
   padding: 4px;
   border-radius: var(--radius-md);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--ink-stroke);
   flex-shrink: 0;
 }
 
@@ -74,14 +75,14 @@
 }
 
 .equip-slot--empty {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  background: rgba(54, 48, 42, 0.06);
+  border: 1.5px solid rgba(42, 38, 34, 0.1);
   font-size: 0.85rem;
   color: var(--text-muted);
 }
 
 .equip-slot--filled {
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(247, 240, 228, 0.8);
   border: 1.5px solid var(--rarity-common);
   padding: 0;
   cursor: pointer;
@@ -89,10 +90,10 @@
   overflow: hidden;
 }
 
-.equip-slot--rare { border-color: var(--rarity-rare); box-shadow: 0 0 6px rgba(96, 165, 250, 0.15); }
-.equip-slot--epic { border-color: var(--rarity-epic); box-shadow: 0 0 6px rgba(167, 139, 250, 0.15); }
-.equip-slot--legendary { border-color: var(--rarity-legendary); box-shadow: 0 0 6px rgba(245, 158, 11, 0.15); }
-.equip-slot--mythic { border-color: var(--rarity-mythic); box-shadow: 0 0 6px rgba(244, 63, 94, 0.15); }
+.equip-slot--rare { border-color: var(--rarity-rare); box-shadow: 0 0 6px rgba(74, 104, 116, 0.2); }
+.equip-slot--epic { border-color: var(--rarity-epic); box-shadow: 0 0 6px rgba(106, 90, 122, 0.2); }
+.equip-slot--legendary { border-color: var(--rarity-legendary); box-shadow: 0 0 6px rgba(168, 138, 72, 0.2); }
+.equip-slot--mythic { border-color: var(--rarity-mythic); box-shadow: 0 0 6px rgba(168, 60, 50, 0.2); }
 
 .character-panel__exp {
   margin-top: var(--space-sm);
@@ -100,15 +101,15 @@
 
 .character-panel__exp-track {
   height: 6px;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(54, 48, 42, 0.12);
   border-radius: 999px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--ink-stroke);
 }
 
 .character-panel__exp-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--gold-600), var(--gold-300));
+  background: linear-gradient(90deg, var(--gold-600), var(--gold-400));
   border-radius: inherit;
   transition: width 0.4s var(--ease-out);
   box-shadow: 0 0 8px var(--gold-glow);
@@ -142,7 +143,7 @@
   flex-wrap: wrap;
   gap: 4px;
   margin-bottom: var(--space-sm);
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(54, 48, 42, 0.06);
   padding: 3px;
   border-radius: var(--radius-md);
 }
@@ -156,16 +157,17 @@
   border-radius: var(--radius-sm);
   color: var(--text-muted);
   transition: all var(--duration-fast) var(--ease-out);
+  font-family: var(--font-serif);
 }
 
 .character-panel__tab:hover {
   color: var(--text-secondary);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(54, 48, 42, 0.05);
 }
 
 .character-panel__tab--active {
-  color: var(--gold-300);
-  background: rgba(201, 164, 92, 0.15);
+  color: var(--gold-600);
+  background: rgba(168, 138, 72, 0.14);
   font-weight: 600;
 }
 
@@ -177,11 +179,12 @@
 
 .character-panel__section-title {
   margin: 0 0 6px;
-  color: var(--gold-300);
+  color: var(--gold-600);
   font-size: 0.85rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--ink-stroke);
   padding-bottom: 2px;
   font-family: var(--font-serif);
+  font-weight: 600;
 }
 
 .character-panel__stat-list {
@@ -215,9 +218,9 @@
   width: 22px;
   height: 22px;
   border-radius: var(--radius-sm);
-  border: 1px solid rgba(45, 212, 191, 0.4);
-  background: rgba(45, 212, 191, 0.1);
-  color: var(--jade-300);
+  border: 1px solid rgba(74, 104, 116, 0.45);
+  background: rgba(74, 104, 116, 0.12);
+  color: var(--jade-600);
   font-size: 0.9rem;
   line-height: 1;
   display: flex;
@@ -226,14 +229,14 @@
 }
 
 .character-panel__plus:hover:not(:disabled) {
-  background: rgba(45, 212, 191, 0.2);
+  background: rgba(74, 104, 116, 0.2);
 }
 
 .character-panel__badge {
   font-size: 0.75rem;
-  background: rgba(201, 164, 92, 0.12);
-  border: 1px solid rgba(201, 164, 92, 0.3);
-  color: var(--gold-300);
+  background: rgba(168, 138, 72, 0.12);
+  border: 1px solid rgba(168, 138, 72, 0.32);
+  color: var(--gold-600);
   padding: 2px 8px;
   border-radius: 999px;
 }
@@ -243,14 +246,15 @@
   padding: 8px;
   font-size: 0.8rem;
   border-radius: var(--radius-md);
-  border: 1px solid var(--ink-border-strong);
-  background: rgba(201, 164, 92, 0.08);
-  color: var(--gold-300);
+  border: 1px solid var(--ink-stroke-strong);
+  background: rgba(168, 138, 72, 0.08);
+  color: var(--gold-600);
   transition: all var(--duration-fast) var(--ease-out);
+  font-family: var(--font-serif);
 }
 
 .character-panel__auto-btn:hover:not(:disabled) {
-  background: rgba(201, 164, 92, 0.15);
+  background: rgba(168, 138, 72, 0.16);
   box-shadow: var(--shadow-glow-gold);
 }
 
@@ -277,7 +281,7 @@
   display: flex;
   gap: 4px;
   margin-bottom: var(--space-sm);
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(54, 48, 42, 0.05);
   padding: 2px;
   border-radius: var(--radius-sm);
 }
@@ -296,8 +300,8 @@
 }
 
 .character-panel__bag-filter-btn--active {
-  background: rgba(201, 164, 92, 0.15);
-  color: var(--gold-300);
+  background: rgba(168, 138, 72, 0.16);
+  color: var(--gold-600);
   font-weight: 600;
 }
 
@@ -311,21 +315,21 @@
 .character-panel__footer {
   margin-top: auto;
   padding: 6px 0 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.03);
+  border-top: 1px solid var(--ink-stroke);
 }
 
 .character-panel__saving {
   margin: 0;
   font-size: 0.75rem;
-  color: var(--gold-300);
+  color: var(--gold-600);
   text-align: center;
   animation: adventure-pulse 1s infinite alternate;
 }
 
 /* 灵宠 */
 .character-panel__pet-active {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(54, 48, 42, 0.04);
+  border: 1px solid var(--ink-stroke);
   border-radius: var(--radius-md);
   padding: 10px;
   margin-bottom: var(--space-md);
@@ -345,8 +349,8 @@
 }
 
 .character-panel__pet-actions .character-panel__auto-btn--mutate {
-  border-color: rgba(167, 139, 250, 0.4);
-  color: #c99bff;
+  border-color: rgba(106, 90, 122, 0.45);
+  color: var(--mystic);
 }
 
 .character-panel__pet-list {
@@ -359,14 +363,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(255, 255, 255, 0.01);
-  border: 1px solid rgba(255, 255, 255, 0.03);
+  background: rgba(54, 48, 42, 0.03);
+  border: 1px solid var(--ink-stroke);
   border-radius: var(--radius-sm);
   padding: 6px 8px;
 }
 
 .character-panel__pet-item--active {
-  border-color: rgba(201, 164, 92, 0.3);
+  border-color: rgba(168, 138, 72, 0.4);
 }
 
 /* 绝学 */
@@ -377,25 +381,25 @@
 }
 
 .character-panel__spell-card {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(54, 48, 42, 0.04);
   border-radius: var(--radius-sm);
   padding: 8px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--ink-stroke);
 }
 
 .character-panel__spell-card--legendary {
   border-left: 3px solid var(--rarity-legendary);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15), 0 0 4px rgba(245, 158, 11, 0.08);
+  box-shadow: 0 2px 4px rgba(42, 38, 34, 0.08), 0 0 4px rgba(168, 138, 72, 0.12);
 }
 
 .character-panel__spell-card--epic {
   border-left: 3px solid var(--rarity-epic);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15), 0 0 4px rgba(167, 139, 250, 0.08);
+  box-shadow: 0 2px 4px rgba(42, 38, 34, 0.08), 0 0 4px rgba(106, 90, 122, 0.12);
 }
 
 .character-panel__spell-card--rare {
   border-left: 3px solid var(--rarity-rare);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15), 0 0 4px rgba(96, 165, 250, 0.08);
+  box-shadow: 0 2px 4px rgba(42, 38, 34, 0.08), 0 0 4px rgba(74, 104, 116, 0.12);
 }
 
 .character-panel__empty-state {

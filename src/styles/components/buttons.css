@@ -1,4 +1,4 @@
-/* 水墨风按钮 */
+/* 水墨风按钮 · 墨笔描边 */
 .command-hub__btn {
   display: inline-flex;
   align-items: center;
@@ -7,11 +7,11 @@
   padding: 10px 16px;
   border-radius: var(--radius-sm);
   font-size: 0.82rem;
-  font-weight: 400;
+  font-weight: 500;
   letter-spacing: 0.04em;
   font-family: var(--font-serif);
   border: 1px solid var(--ink-stroke);
-  background: rgba(232, 223, 208, 0.03);
+  background: rgba(247, 240, 228, 0.6);
   color: var(--text-primary);
   transition: all var(--duration-fast) var(--ease-ink);
   white-space: nowrap;
@@ -19,7 +19,8 @@
 
 .command-hub__btn:hover:not(:disabled) {
   border-color: var(--ink-stroke-strong);
-  background: rgba(232, 223, 208, 0.06);
+  background: rgba(54, 48, 42, 0.06);
+  box-shadow: 0 1px 4px rgba(42, 38, 34, 0.08);
 }
 
 .command-hub__btn:disabled {
@@ -28,20 +29,20 @@
 }
 
 .command-hub__btn--primary {
-  background: rgba(106, 136, 148, 0.1);
-  border-color: rgba(106, 136, 148, 0.35);
-  color: var(--jade-300);
+  background: rgba(74, 104, 116, 0.1);
+  border-color: rgba(74, 104, 116, 0.4);
+  color: var(--jade-600);
 }
 
 .command-hub__btn--primary:hover:not(:disabled) {
-  background: rgba(106, 136, 148, 0.16);
+  background: rgba(74, 104, 116, 0.16);
   box-shadow: var(--shadow-glow-jade);
 }
 
 .command-hub__btn--choice {
-  background: rgba(168, 152, 120, 0.08);
-  border-color: rgba(168, 152, 120, 0.28);
-  color: var(--gold-300);
+  background: rgba(168, 138, 72, 0.08);
+  border-color: rgba(168, 138, 72, 0.32);
+  color: var(--gold-600);
   flex-direction: column;
   align-items: flex-start;
   text-align: left;
@@ -51,19 +52,19 @@
 
 .command-hub__btn--choice:hover:not(:disabled) {
   border-color: var(--gold-500);
-  background: rgba(168, 152, 120, 0.12);
+  background: rgba(168, 138, 72, 0.14);
 }
 
 .command-hub__btn--explore {
-  background: rgba(106, 132, 148, 0.08);
-  border-color: rgba(106, 132, 148, 0.25);
+  background: rgba(74, 104, 116, 0.08);
+  border-color: rgba(74, 104, 116, 0.28);
   color: var(--azure);
 }
 
 .command-hub__btn--battle {
-  background: rgba(168, 60, 50, 0.1);
+  background: rgba(168, 60, 50, 0.08);
   border: 1.5px solid rgba(168, 60, 50, 0.45);
-  color: var(--cinnabar-light);
+  color: var(--cinnabar);
   font-weight: 600;
   padding: 12px 18px;
   justify-content: flex-start;
@@ -71,8 +72,8 @@
 }
 
 .command-hub__btn--battle:hover:not(:disabled) {
-  background: rgba(168, 60, 50, 0.16);
-  box-shadow: 0 2px 10px rgba(168, 60, 50, 0.12);
+  background: rgba(168, 60, 50, 0.14);
+  box-shadow: 0 2px 10px rgba(168, 60, 50, 0.16);
 }
 
 .command-hub__battle-inner {
@@ -103,7 +104,7 @@
 
 .command-hub__battle-foe {
   font-size: 0.72rem;
-  color: rgba(196, 90, 80, 0.75);
+  color: rgba(168, 60, 50, 0.75);
   font-weight: 400;
 }
 
@@ -112,7 +113,7 @@
   font-size: 0.78rem;
   padding: 8px 12px;
   border-style: dashed;
-  border-color: rgba(232, 223, 208, 0.1);
+  border-color: rgba(42, 38, 34, 0.2);
 }
 
 .command-hub__btn--ghost {
@@ -133,7 +134,7 @@
 }
 
 .command-hub__btn-sep {
-  opacity: 0.35;
+  opacity: 0.4;
   margin: 0 2px;
 }
 

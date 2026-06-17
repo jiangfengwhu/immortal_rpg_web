@@ -1,64 +1,73 @@
-/* 水墨风 · 设计令牌 */
+/* 水墨风 · 设计令牌 —— 宣纸明底 · 墨分五色 */
 :root {
-  /* 宣纸与墨 */
-  --paper-white: #f2ebe0;
-  --paper-warm: #e8dfd0;
-  --paper-aged: #d4c9b8;
+  /* 宣纸 · 明底 */
+  --paper-white: #f3ece0;
+  --paper-warm: #ece2d2;
+  --paper-aged: #e0d4bf;
+  --paper-deep: #d6c8b0;
 
-  --ink-void: #141312;
-  --ink-deep: #1c1b19;
-  --ink-base: #242220;
-  --ink-raised: #2e2c28;
-  --ink-surface: #383530;
-  --ink-stroke: rgba(232, 223, 208, 0.12);
-  --ink-stroke-strong: rgba(232, 223, 208, 0.22);
-  --ink-wash: rgba(20, 19, 18, 0.72);
-  --ink-mist: rgba(168, 163, 154, 0.06);
+  /* 墨 · 五色 */
+  --ink-void: #1f1c18;
+  --ink-deep: #2a2622;
+  --ink-base: #36302a;
+  --ink-raised: #453d35;
+  --ink-surface: #5a5048;
+  --ink-stroke: rgba(42, 38, 34, 0.16);
+  --ink-stroke-strong: rgba(42, 38, 34, 0.32);
+  --ink-wash: rgba(54, 48, 42, 0.06);
+  --ink-mist: rgba(90, 80, 72, 0.08);
 
-  /* 兼容旧变量名 */
+  /* 兼容旧变量名 —— 现为墨色描边（明底上的墨线） */
   --ink-border: var(--ink-stroke);
   --ink-border-strong: var(--ink-stroke-strong);
 
   /* 花青 · 淡墨着色 */
-  --jade-100: #c8d4d8;
-  --jade-300: #8aa4ad;
-  --jade-400: #6a8894;
+  --jade-100: #e3ebed;
+  --jade-300: #a8bcc2;
+  --jade-400: #6e8c96;
   --jade-500: #4a6874;
-  --jade-600: #3a5460;
-  --jade-glow: rgba(106, 136, 148, 0.15);
+  --jade-600: #34505c;
+  --jade-glow: rgba(74, 104, 116, 0.14);
 
   /* 赭石 · 题跋用色 */
-  --gold-100: #e8dfd0;
-  --gold-300: #c4b896;
-  --gold-400: #a89878;
-  --gold-500: #8a7a5c;
-  --gold-600: #6a5e48;
-  --gold-glow: rgba(168, 152, 120, 0.12);
+  --gold-100: #efe6d4;
+  --gold-300: #c4a86a;
+  --gold-400: #a88a48;
+  --gold-500: #8a6a3a;
+  --gold-600: #6a4f2c;
+  --gold-glow: rgba(168, 138, 72, 0.14);
 
   /* 朱砂 · 印章 */
   --cinnabar: #a83c32;
-  --cinnabar-soft: rgba(168, 60, 50, 0.12);
-  --cinnabar-light: #c45a50;
+  --cinnabar-soft: rgba(168, 60, 50, 0.1);
+  --cinnabar-light: #c45248;
+  --seal-red: #9c3a30;
 
   /* 淡墨辅助 */
-  --mystic: #8a8498;
-  --mystic-soft: rgba(138, 132, 152, 0.1);
-  --azure: #6a8494;
-  --emerald: #6a8a78;
+  --mystic: #6a5a7a;
+  --mystic-soft: rgba(106, 90, 122, 0.1);
+  --azure: #4a6874;
+  --emerald: #4a7a64;
 
-  /* 文字 · 墨分五色 */
-  --text-primary: #e8e4dc;
-  --text-secondary: #a8a39a;
-  --text-muted: #7a756c;
-  --text-gold: var(--gold-300);
-  --text-jade: var(--jade-300);
+  /* 文字 · 墨色（明底为文） */
+  --text-primary: #2a2622;
+  --text-secondary: #6b6258;
+  --text-muted: #9a9088;
+  --text-gold: var(--gold-500);
+  --text-jade: var(--jade-500);
 
-  /* 品级 · 水墨淡彩 */
-  --rarity-common: #7a756c;
-  --rarity-rare: #6a8494;
-  --rarity-epic: #8a8498;
-  --rarity-legendary: #a89878;
-  --rarity-mythic: #a83c32;
+  /* 品级 · 水墨淡彩（去饱和） */
+  --rarity-common: #8a8078;
+  --rarity-rare: #4a6874;
+  --rarity-epic: #6a5a7a;
+  --rarity-legendary: #8a6a3a;
+  --rarity-mythic: #9c3a30;
+
+  /* 卷轴装饰 */
+  --scroll-rod: #6a4f2c;
+  --scroll-rod-light: #8a6a3a;
+  --paper-grain: rgba(168, 138, 72, 0.05);
+  --wash-shadow: rgba(42, 38, 34, 0.08);
 
   /* 间距 */
   --space-xs: 4px;
@@ -74,21 +83,21 @@
   --radius-xl: 8px;
 
   /* 布局 */
-  --topbar-h: 52px;
-  --panel-gap: 10px;
-  --sidebar-w: 272px;
-  --right-w: 300px;
+  --topbar-h: 56px;
+  --panel-gap: 14px;
+  --sidebar-w: 278px;
+  --right-w: 306px;
 
   /* 字体 */
   --font-serif: 'Noto Serif SC', 'Songti SC', 'STSong', serif;
   --font-sans: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
 
-  /* 阴影 · 墨晕 */
-  --shadow-panel: 0 2px 16px rgba(0, 0, 0, 0.35), 0 0 40px rgba(0, 0, 0, 0.15);
-  --shadow-ink: 0 4px 20px rgba(0, 0, 0, 0.25);
-  --shadow-glow-jade: 0 2px 12px rgba(106, 136, 148, 0.12);
-  --shadow-glow-gold: 0 2px 12px rgba(168, 152, 120, 0.1);
+  /* 阴影 · 淡墨晕染 */
+  --shadow-panel: 0 2px 12px rgba(42, 38, 34, 0.08), 0 0 32px rgba(168, 138, 72, 0.05);
+  --shadow-ink: 0 4px 16px rgba(42, 38, 34, 0.1);
+  --shadow-glow-jade: 0 2px 10px rgba(74, 104, 116, 0.12);
+  --shadow-glow-gold: 0 2px 10px rgba(168, 138, 72, 0.12);
 
   /* 动画 */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);

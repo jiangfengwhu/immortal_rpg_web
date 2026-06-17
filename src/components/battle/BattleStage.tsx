@@ -68,37 +68,13 @@ export function BattleStage() {
     : { name: '青石村', phaseName: '凡尘俗世' }
 
   const feedTimeline = useInfoFeedStore((state) => state.entries)
-  const finalizeHarvestSession = useInfoFeedStore((state) => state.finalizeHarvestSession)
-  const pushAction = useInfoFeedStore((state) => state.pushAction)
-  const stopAfkGather = useGameSessionStore((state) => state.stopAfkGather)
-  
+
   const activeHarvest = findActiveHarvestEntry(feedTimeline)
   const harvestActive = Boolean(activeHarvest)
-  
-  const recentLogs = useMemo(() => {
-    return feedTimeline
-      .filter((e) => e.kind === 'harvest' && e.text)
-      .slice(-3)
-  }, [feedTimeline])
-
-  const collectedLoot = useMemo(() => {
-    const totals = activeHarvest?.harvestTotals || {}
-    return Object.entries(totals).filter(([_, count]) => count > 0)
-  }, [activeHarvest?.harvestTotals])
 
   const activePet = useMemo(() => {
     return playerState?.player.pets?.find((p) => p.isActive)
   }, [playerState?.player.pets])
-  
-  const handleStopHarvest = () => {
-    const isBamboo = activeHarvest?.text?.includes('竹林') || activeHarvest?.text?.includes('历练')
-    const feature = isBamboo ? 'AFK_BAMBOO_WOODS' : 'AFK_HERB_FIELD'
-    const label = feature === 'AFK_HERB_FIELD' ? '药田采集' : '竹林历练'
-    pushAction(`你停下了「${label}」，返回院落。`)
-    void stopAfkGather(feature).then((outcome) => {
-      finalizeHarvestSession('stopped')
-    })
-  }
 
   // Autoscroll battle logs
   useEffect(() => {
@@ -250,58 +226,17 @@ export function BattleStage() {
           <div className="spirit-particle" aria-hidden />
 
           {harvestActive ? (
-            <div className="text-battle-idle__harvest">
+            <div className="text-battle-idle__harvest-simple">
               <span className="text-battle-idle__loc">
                 📍 {chapter.phaseName} · {chapter.name}
               </span>
-
-              <div className="text-battle-idle__vortex">
-                <div className="text-battle-idle__vortex-ring" />
-                <div className="text-battle-idle__harvest-status">
-                  <span className="info-feed__pulse" />
-                  <strong className="text-battle-idle__harvest-title">正在挂机修行中…</strong>
-                  <span className="text-battle-idle__harvest-tip">{activeHarvest?.text}</span>
-                </div>
-              </div>
-
-              <div className="text-battle-idle__loot-section">
-                <p className="text-battle-idle__loot-heading">—— 本次挂机收获 ——</p>
-                {collectedLoot.length === 0 ? (
-                  <p className="text-battle-idle__loot-empty">正搜寻四周机缘天材地宝…</p>
-                ) : (
-                  <div className="text-battle-idle__loot-tags">
-                    {collectedLoot.map(([name, count]) => (
-                      <span key={name} className="text-battle-idle__loot-tag">
-                        {name}×{count}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="text-battle-idle__log-panel">
-                <p className="text-battle-idle__log-heading">挂机日志：</p>
-                {recentLogs.length === 0 ? (
-                  <p className="text-battle-idle__loot-empty">暂无日志记录</p>
-                ) : (
-                  recentLogs.map((log) => (
-                    <div key={log.id} className="text-battle-idle__log-line">
-                      <span className="text-battle-idle__log-tag">[挂机]</span>
-                      {log.text}
-                    </div>
-                  ))
-                )}
-              </div>
-
-              <div className="text-battle-idle__stop-wrap">
-                <button
-                  type="button"
-                  className="command-hub__btn command-hub__btn--ghost command-hub__btn--compact"
-                  onClick={handleStopHarvest}
-                >
-                  中止挂机
-                </button>
-              </div>
+              <div className="text-battle-idle__harvest-icon">🌿</div>
+              <h3 className="text-battle-idle__title">挂机修行中</h3>
+              <p className="text-battle-idle__harvest-tip-simple">
+                {activeHarvest?.text ?? '正在采集灵气机缘'}
+                <br />
+                收获与日志已收入右侧「信息中心」状态条
+              </p>
             </div>
           ) : (
             <div className="text-battle-idle__content">

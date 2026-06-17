@@ -25,20 +25,20 @@ function getItemCategory(kind: string): 'world' | 'self' | 'system' {
   }
 }
 
-function getBadgeMeta(kind: string): { label: string; tone: string } {
+function getBadgeMeta(kind: string): { icon: string; label: string; tone: string } {
   switch (kind) {
     case 'dialogue':
-      return { label: '对话', tone: 'dialogue' }
+      return { icon: '语', label: '对话', tone: 'dialogue' }
     case 'narrative':
-      return { label: '叙事', tone: 'narrative' }
+      return { icon: '叙', label: '叙事', tone: 'narrative' }
     case 'focus':
-      return { label: '目标', tone: 'focus' }
+      return { icon: '标', label: '目标', tone: 'focus' }
     case 'action':
-      return { label: '自己', tone: 'self' }
+      return { icon: '己', label: '自己', tone: 'self' }
     case 'harvest':
-      return { label: '挂机', tone: 'self' }
+      return { icon: '机', label: '挂机', tone: 'self' }
     default:
-      return { label: '系统', tone: 'system' }
+      return { icon: '系', label: '系统', tone: 'system' }
   }
 }
 
@@ -119,8 +119,9 @@ function InfoFeedItemView({
   const badge = getBadgeMeta(item.kind)
 
   const badgeEl = (
-    <span className={`info-feed__badge info-feed__badge--${badge.tone}`}>
-      {badge.label}
+    <span className={`info-feed__badge info-feed__badge--${badge.tone}`} aria-label={badge.label}>
+      <span className="info-feed__badge-icon" aria-hidden>{badge.icon}</span>
+      <span className="info-feed__badge-label">{badge.label}</span>
     </span>
   )
 
@@ -189,8 +190,38 @@ export function CommandHubInfoFeed(props: CommandHubInfoFeedProps) {
 
   const isEmpty = filteredItems.length === 0
 
+  const harvestActive = Boolean(activeHarvest?.active)
+  const harvestLoot = useMemo(() => {
+    const totals = activeHarvest?.harvestTotals || {}
+    return Object.entries(totals).filter(([, count]) => count > 0)
+  }, [activeHarvest?.harvestTotals])
+  const harvestLabel = activeHarvest?.text?.includes('竹林') || activeHarvest?.text?.includes('历练')
+    ? '竹林历练'
+    : '药田采药'
+
   return (
     <div className="info-feed-container">
+      {harvestActive && props.onStopHarvest && (
+        <div className="info-feed__harvest-bar">
+          <span className="info-feed__pulse" aria-hidden />
+          <span className="info-feed__harvest-bar-label">
+            <strong>{harvestLabel}中</strong>
+            {harvestLoot.length > 0 && (
+              <span className="info-feed__harvest-bar-loot">
+                {harvestLoot.map(([name, count]) => `${name}×${count}`).join(' · ')}
+              </span>
+            )}
+          </span>
+          <button
+            type="button"
+            className="info-feed__harvest-bar-stop"
+            onClick={() => props.onStopHarvest?.(activeHarvest?.id ?? '')}
+          >
+            {PLAYER_COPY.harvestStop}
+          </button>
+        </div>
+      )}
+
       <div className="info-feed__tabs" role="tablist" aria-label="信息流过滤">
         <button
           type="button"

@@ -3,7 +3,7 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
-  background: var(--ink-wash);
+  background: rgba(247, 240, 228, 0.55);
   border: 1px solid var(--ink-stroke);
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -11,8 +11,8 @@
 }
 
 .battle-stage--live {
-  border-color: rgba(168, 60, 50, 0.25);
-  box-shadow: inset 0 0 24px rgba(168, 60, 50, 0.04);
+  border-color: rgba(168, 60, 50, 0.3);
+  box-shadow: inset 0 0 24px rgba(168, 60, 50, 0.05);
 }
 
 .battle-stage--text {
@@ -33,7 +33,7 @@
   gap: var(--space-md);
   align-items: center;
   padding-bottom: var(--space-md);
-  border-bottom: 1px solid var(--ink-border);
+  border-bottom: 1px solid var(--ink-stroke);
   flex-shrink: 0;
 }
 
@@ -58,10 +58,10 @@
   width: 100%;
   max-width: 160px;
   height: 6px;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(54, 48, 42, 0.12);
   border-radius: 999px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--ink-stroke);
 }
 
 .text-battle__hp-fill {
@@ -75,7 +75,7 @@
 }
 
 .text-battle__hp-fill--enemy {
-  background: linear-gradient(90deg, #6a3028, var(--cinnabar));
+  background: linear-gradient(90deg, var(--gold-600), var(--cinnabar));
 }
 
 .text-battle__hp-text {
@@ -100,17 +100,18 @@
   flex: 1;
   overflow-y: auto;
   padding: var(--space-sm);
-  background: rgba(0, 0, 0, 0.25);
+  background: rgba(54, 48, 42, 0.04);
   border-radius: var(--radius-md);
-  border: 1px solid rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--ink-stroke);
 }
 
 .text-battle__log-line {
   font-size: 0.8rem;
   color: var(--text-secondary);
-  line-height: 1.55;
+  line-height: 1.6;
   padding: 3px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(42, 38, 34, 0.05);
+  font-family: var(--font-serif);
 }
 
 .text-battle__controls {
@@ -133,7 +134,7 @@
 }
 
 .text-battle__outcome--enemy {
-  color: var(--cinnabar-light);
+  color: var(--cinnabar);
 }
 
 /* 闲暇 / 挂机 */
@@ -165,7 +166,7 @@
 .text-battle-idle__title {
   font-family: var(--font-serif);
   font-size: 1.15rem;
-  color: var(--gold-300);
+  color: var(--gold-600);
   margin: 2px 0;
 }
 
@@ -174,8 +175,9 @@
   margin: 0;
   overflow-y: auto;
   font-size: 0.82rem;
-  line-height: 1.65;
+  line-height: 1.7;
   color: var(--text-secondary);
+  font-family: var(--font-serif);
 }
 
 .text-battle-idle__vortex {
@@ -192,14 +194,14 @@
   width: 90px;
   height: 90px;
   border-radius: 50%;
-  border: 1.5px dashed rgba(168, 152, 120, 0.25);
-  background: radial-gradient(circle, rgba(168, 152, 120, 0.04) 0%, transparent 75%);
+  border: 1.5px dashed rgba(168, 138, 72, 0.3);
+  background: radial-gradient(circle, rgba(168, 138, 72, 0.05) 0%, transparent 75%);
   animation: spiritual-vortex-spin 12s infinite linear;
 }
 
 .text-battle-idle__vortex-ring--jade {
-  border-color: rgba(106, 136, 148, 0.22);
-  background: radial-gradient(circle, rgba(106, 136, 148, 0.04) 0%, transparent 70%);
+  border-color: rgba(74, 104, 116, 0.28);
+  background: radial-gradient(circle, rgba(74, 104, 116, 0.05) 0%, transparent 70%);
   animation-duration: 22s;
 }
 
@@ -208,7 +210,7 @@
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  border: 1.5px solid rgba(106, 136, 148, 0.35);
+  border: 1.5px solid rgba(74, 104, 116, 0.4);
   animation: breathe-scale 6s infinite ease-in-out;
   display: flex;
   flex-direction: column;
@@ -218,13 +220,13 @@
 
 .text-battle-idle__breath-label {
   font-size: 0.68rem;
-  color: var(--jade-400);
+  color: var(--jade-500);
   font-weight: bold;
 }
 
 .text-battle-idle__breath-sub {
   font-size: 0.55rem;
-  color: var(--jade-300);
+  color: var(--jade-400);
 }
 
 .text-battle-idle__harvest-status {
@@ -236,9 +238,10 @@
 
 .text-battle-idle__harvest-title {
   font-size: 0.88rem;
-  color: var(--gold-300);
+  color: var(--gold-600);
   margin-top: 4px;
   letter-spacing: 1px;
+  font-family: var(--font-serif);
 }
 
 .text-battle-idle__harvest-tip {
@@ -277,8 +280,8 @@
 
 .text-battle-idle__loot-tag {
   font-size: 0.7rem;
-  background: rgba(52, 211, 153, 0.08);
-  border: 1px solid rgba(52, 211, 153, 0.25);
+  background: rgba(74, 122, 100, 0.1);
+  border: 1px solid rgba(74, 122, 100, 0.3);
   border-radius: 999px;
   padding: 1px 8px;
   color: var(--emerald);
@@ -287,8 +290,8 @@
 
 .text-battle-idle__log-panel {
   flex: 1;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.02);
+  background: rgba(54, 48, 42, 0.04);
+  border: 1px solid var(--ink-stroke);
   border-radius: var(--radius-md);
   padding: var(--space-sm);
   overflow-y: auto;
@@ -306,7 +309,7 @@
   font-size: 0.72rem;
   color: var(--text-secondary);
   margin-bottom: 2px;
-  line-height: 1.3;
+  line-height: 1.4;
 }
 
 .text-battle-idle__log-tag {
@@ -322,8 +325,8 @@
   position: absolute;
   bottom: 10px;
   right: 10px;
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(247, 240, 228, 0.85);
+  border: 1px solid var(--ink-stroke);
   border-radius: var(--radius-md);
   padding: 4px 8px;
   display: flex;
@@ -337,12 +340,41 @@
 }
 
 .text-battle-idle__pet-name {
-  color: var(--gold-300);
+  color: var(--gold-600);
   font-weight: 600;
 }
 
 .text-battle-idle__pet-hint {
   color: var(--text-muted);
+}
+
+/* 挂机简化态 · 收获已移入信息中心 */
+.text-battle-idle__harvest-simple {
+  position: relative;
+  z-index: 5;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--space-xs);
+  box-sizing: border-box;
+  padding: var(--space-lg);
+}
+
+.text-battle-idle__harvest-icon {
+  font-size: 2.6rem;
+  animation: breathe-scale 4s infinite ease-in-out;
+}
+
+.text-battle-idle__harvest-tip-simple {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.7;
+  font-family: var(--font-serif);
+  margin: 0;
+  max-width: 240px;
 }
 
 /* 灵气粒子 */
@@ -351,7 +383,7 @@
   width: 3px;
   height: 3px;
   border-radius: 50%;
-  background: var(--text-muted);
+  background: var(--jade-500);
   opacity: 0;
   pointer-events: none;
 }

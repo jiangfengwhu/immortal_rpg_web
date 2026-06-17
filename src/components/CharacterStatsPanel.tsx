@@ -296,9 +296,9 @@ export function CharacterStatsPanel() {
           talent={
             <div style={{ overflowY: 'auto', maxHeight: '420px', paddingRight: '4px', fontSize: '0.82rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <h4 style={{ margin: 0, color: '#fbbf24', fontSize: '0.85rem' }}>天赋修行</h4>
+                <h4 style={{ margin: 0, color: 'var(--gold-600)', fontSize: '0.85rem', fontFamily: 'var(--font-serif)', fontWeight: 600 }}>天赋修行</h4>
                 {hasPotential && (
-                  <span className="character-panel__badge" style={{ fontSize: '0.75rem', backgroundColor: 'rgba(234,179,8,0.15)', border: '1px solid rgba(234,179,8,0.3)', color: '#fbbf24' }}>
+                  <span className="character-panel__badge" style={{ fontSize: '0.75rem' }}>
                     潜力点 {player.potentialPoints}
                   </span>
                 )}
@@ -338,7 +338,7 @@ export function CharacterStatsPanel() {
           /* TAB 4: 法抗 */
           resist={
             <div style={{ overflowY: 'auto', maxHeight: '420px', paddingRight: '4px', fontSize: '0.82rem' }}>
-              <h4 style={{ margin: '0 0 6px 0', color: '#fbbf24', fontSize: '0.85rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '2px' }}>五行抗性</h4>
+              <h4 style={{ margin: '0 0 6px 0', color: 'var(--gold-600)', fontSize: '0.85rem', borderBottom: '1px solid var(--ink-stroke)', paddingBottom: '2px', fontFamily: 'var(--font-serif)', fontWeight: 600 }}>五行抗性</h4>
               <ul className="character-panel__stat-list" style={{ padding: 0, margin: 0 }}>
                 {MAGIC_KEYS.map((key) => (
                   <li key={key} className="character-panel__stat-row" style={{ padding: '4px 0' }}>
@@ -355,20 +355,20 @@ export function CharacterStatsPanel() {
               {/* 出战宠 */}
               <div
                 style={{
-                  backgroundColor: 'rgba(255,255,255,0.02)',
-                  border: '1px solid rgba(255,255,255,0.05)',
+                  backgroundColor: 'rgba(54,48,42,0.04)',
+                  border: '1px solid var(--ink-stroke)',
                   borderRadius: '8px',
                   padding: '10px',
                   marginBottom: '12px',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <span style={{ color: '#94a3b8', fontSize: '0.78rem' }}>当前出战灵宠</span>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.78rem' }}>当前出战灵宠</span>
                   {activePet && (
                     <span
                       style={{
                         fontSize: '0.72rem',
-                        color: activePet.rarity === 'divine' ? '#ff9a2e' : activePet.rarity === 'mutated' ? '#b06aff' : activePet.rarity === 'rare' ? '#5a9fff' : '#34d399',
+                        color: activePet.rarity === 'divine' ? 'var(--rarity-mythic)' : activePet.rarity === 'mutated' ? 'var(--rarity-epic)' : activePet.rarity === 'rare' ? 'var(--rarity-rare)' : 'var(--emerald)',
                         fontWeight: 'bold',
                       }}
                     >
@@ -381,8 +381,8 @@ export function CharacterStatsPanel() {
                 </div>
                 {activePet ? (
                   <div>
-                    <h4 style={{ margin: '0 0 6px 0', color: '#fff', fontSize: '1.05rem' }}>
-                      {activePet.name} <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Lv.{activePet.level}</span>
+                    <h4 style={{ margin: '0 0 6px 0', color: 'var(--text-primary)', fontSize: '1.05rem' }}>
+                      {activePet.name} <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Lv.{activePet.level}</span>
                     </h4>
                     {activePet.skills && activePet.skills.length > 0 && (
                       <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '6px' }}>
@@ -391,11 +391,11 @@ export function CharacterStatsPanel() {
                             key={idx}
                             style={{
                               fontSize: '0.72rem',
-                              backgroundColor: 'rgba(255,255,255,0.05)',
-                              border: '1px solid rgba(255,255,255,0.1)',
+                              backgroundColor: 'rgba(54,48,42,0.05)',
+                              border: '1px solid var(--ink-stroke)',
                               padding: '1px 6px',
                               borderRadius: '4px',
-                              color: '#cbd5e1',
+                              color: 'var(--text-secondary)',
                             }}
                           >
                             {s}
@@ -405,7 +405,7 @@ export function CharacterStatsPanel() {
                     )}
                   </div>
                 ) : (
-                  <p style={{ margin: 0, color: '#64748b', fontStyle: 'italic', fontSize: '0.8rem' }}>当前尚无出战灵宠，可从下方列表召出</p>
+                  <p style={{ margin: 0, color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.8rem' }}>当前尚无出战灵宠，可从下方列表召出</p>
                 )}
               </div>
 
@@ -428,8 +428,8 @@ export function CharacterStatsPanel() {
                     padding: '6px',
                     fontSize: '0.78rem',
                     margin: 0,
-                    borderColor: 'rgba(176,106,255,0.4)',
-                    color: player.gold >= 200 && activePet ? '#c99bff' : '#64748b',
+                    borderColor: 'rgba(106,90,122,0.45)',
+                    color: player.gold >= 200 && activePet ? 'var(--mystic)' : 'var(--text-muted)',
                   }}
                   disabled={isSaving || !activePet || player.gold < 200}
                   onClick={() => activePet && void mutatePlayerPet(activePet.id)}
@@ -439,9 +439,9 @@ export function CharacterStatsPanel() {
               </div>
 
               {/* 灵宠仓库列表 */}
-              <h4 style={{ margin: '0 0 6px 0', fontSize: '0.85rem', color: '#fbbf24', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '2px' }}>灵宠名录 ({pets.length})</h4>
+              <h4 style={{ margin: '0 0 6px 0', fontSize: '0.85rem', color: 'var(--gold-600)', borderBottom: '1px solid var(--ink-stroke)', paddingBottom: '2px', fontFamily: 'var(--font-serif)', fontWeight: 600 }}>灵宠名录 ({pets.length})</h4>
               {pets.length === 0 ? (
-                <p style={{ color: '#64748b', fontStyle: 'italic', fontSize: '0.78rem' }}>尚无豢养任何灵宠，快点击上方孵化召唤吧</p>
+                <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.78rem' }}>尚无豢养任何灵宠，快点击上方孵化召唤吧</p>
               ) : (
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {pets.map((pet) => (
@@ -451,28 +451,28 @@ export function CharacterStatsPanel() {
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        backgroundColor: 'rgba(255,255,255,0.01)',
-                        border: pet.isActive ? '1px solid rgba(201,164,92,0.3)' : '1px solid rgba(255,255,255,0.03)',
+                        backgroundColor: 'rgba(54,48,42,0.03)',
+                        border: pet.isActive ? '1px solid rgba(168,138,72,0.4)' : '1px solid var(--ink-stroke)',
                         borderRadius: '6px',
                         padding: '6px 8px',
                       }}
                     >
                       <div>
-                        <span style={{ fontWeight: pet.isActive ? 'bold' : 'normal', color: pet.isActive ? '#fbbf24' : '#cbd5e1' }}>{pet.name}</span>
-                        <span style={{ fontSize: '0.72rem', color: '#94a3b8', marginLeft: '6px' }}>Lv.{pet.level}</span>
+                        <span style={{ fontWeight: pet.isActive ? 'bold' : 'normal', color: pet.isActive ? 'var(--gold-600)' : 'var(--text-primary)' }}>{pet.name}</span>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginLeft: '6px' }}>Lv.{pet.level}</span>
                       </div>
                       {pet.isActive ? (
-                        <span style={{ fontSize: '0.72rem', color: '#fbbf24', padding: '2px 8px', backgroundColor: 'rgba(201,164,92,0.1)', borderRadius: '4px' }}>出战中</span>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--gold-600)', padding: '2px 8px', backgroundColor: 'rgba(168,138,72,0.12)', borderRadius: '4px' }}>出战中</span>
                       ) : (
                         <button
                           type="button"
                           disabled={isSaving}
                           style={{
                             fontSize: '0.72rem',
-                            backgroundColor: 'rgba(255,255,255,0.05)',
-                            border: '1px solid rgba(255,255,255,0.1)',
+                            backgroundColor: 'rgba(54,48,42,0.05)',
+                            border: '1px solid var(--ink-stroke)',
                             borderRadius: '4px',
-                            color: '#cbd5e1',
+                            color: 'var(--text-secondary)',
                             padding: '2px 8px',
                             cursor: 'pointer',
                           }}
@@ -490,30 +490,29 @@ export function CharacterStatsPanel() {
           /* TAB 6: 绝学 */
           spells={
             <div style={{ overflowY: 'auto', maxHeight: '420px', paddingRight: '4px', fontSize: '0.82rem' }}>
-              <h4 style={{ margin: '0 0 8px 0', color: '#fbbf24', fontSize: '0.85rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '2px' }}>习得绝学</h4>
+              <h4 style={{ margin: '0 0 8px 0', color: 'var(--gold-600)', fontSize: '0.85rem', borderBottom: '1px solid var(--ink-stroke)', paddingBottom: '2px', fontFamily: 'var(--font-serif)', fontWeight: 600 }}>习得绝学</h4>
               {!player.spells || player.spells.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '24px 0', color: '#64748b' }}>
+                <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text-muted)' }}>
                   <span style={{ fontSize: '2rem', display: 'block', marginBottom: '8px' }}>🔮</span>
                   <p style={{ margin: 0, fontStyle: 'italic', fontSize: '0.78rem' }}>暂未参透任何大神通绝学。</p>
-                  <p style={{ margin: '4px 0 0 0', fontSize: '0.72rem', color: '#475569' }}>在野外与妖兽切磋或主线晋升时有機缘顿悟。</p>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>在野外与妖兽切磋或主线晋升时有機缘顿悟。</p>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {player.spells.map((s, idx) => {
                     const r = getSpellRarity(s)
-                    const color = r === 'legendary' ? '#ff9a2e' : r === 'epic' ? '#b06aff' : '#5a9fff'
+                    const color = r === 'legendary' ? 'var(--rarity-legendary)' : r === 'epic' ? 'var(--rarity-epic)' : 'var(--rarity-rare)'
                     return (
                       <div
                         key={idx}
                         style={{
-                          backgroundColor: 'rgba(255,255,255,0.02)',
+                          backgroundColor: 'rgba(54,48,42,0.04)',
                           borderLeft: `3px solid ${color}`,
-                          borderRight: '1px solid rgba(255,255,255,0.03)',
-                          borderTop: '1px solid rgba(255,255,255,0.03)',
-                          borderBottom: '1px solid rgba(255,255,255,0.03)',
+                          border: '1px solid var(--ink-stroke)',
+                          borderLeftWidth: '3px',
+                          borderLeftColor: color,
                           borderRadius: '4px',
                           padding: '8px 10px',
-                          boxShadow: `0 2px 4px rgba(0,0,0,0.15), 0 0 4px ${color}11`,
                         }}
                         title={s}
                       >
@@ -523,7 +522,7 @@ export function CharacterStatsPanel() {
                             {r === 'legendary' ? '传世绝学' : r === 'epic' ? '盖世神功' : '上乘功法'}
                           </span>
                         </div>
-                        <p style={{ margin: 0, fontSize: '0.76rem', color: '#94a3b8', lineHeight: 1.4, fontStyle: 'italic' }}>
+                        <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-secondary)', lineHeight: 1.5, fontStyle: 'italic' }}>
                           {SPELL_DESCRIPTIONS[s] || '大神通绝学，威力横扫八荒。'}
                         </p>
                       </div>

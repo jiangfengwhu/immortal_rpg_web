@@ -18,9 +18,9 @@ const CLASS_ICONS: Record<PlayerClass, string> = {
 }
 
 const CLASS_ACCENT: Record<PlayerClass, string> = {
-  warrior: '#c45c4a',
-  mage: '#5a8fd4',
-  warlock: '#8a5ad4',
+  warrior: '#9c3a30',
+  mage: '#4a6874',
+  warlock: '#6a5a7a',
 }
 
 const PRIMARY_KEYS = Object.keys(PRIMARY_ATTR_LABELS) as (keyof typeof PRIMARY_ATTR_LABELS)[]

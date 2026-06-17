@@ -1,4 +1,4 @@
-/* 通用模态遮罩 */
+/* 通用模态遮罩 · 淡墨氤氲 */
 .journey-modal-overlay,
 .map-teleport-overlay,
 .settings-overlay {
@@ -8,23 +8,23 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(5, 8, 12, 0.75);
+  background: rgba(54, 48, 42, 0.55);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   padding: var(--space-lg);
   animation: feed-fresh-in 0.25s var(--ease-out);
 }
 
-/* 旅程详情 */
+/* 旅程详情 · 宣纸卷轴 */
 .journey-modal {
   width: min(560px, 100%);
   max-height: 85vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(165deg, rgba(24, 32, 42, 0.98) 0%, rgba(12, 18, 26, 0.99) 100%);
-  border: 1px solid var(--ink-border-strong);
+  background: linear-gradient(165deg, var(--paper-white) 0%, var(--paper-warm) 100%);
+  border: 1px solid var(--ink-stroke-strong);
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-panel), 0 16px 48px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-panel), 0 16px 48px rgba(42, 38, 34, 0.18);
   overflow: hidden;
 }
 
@@ -33,7 +33,7 @@
   justify-content: space-between;
   align-items: flex-start;
   padding: var(--space-lg);
-  border-bottom: 1px solid var(--ink-border);
+  border-bottom: 1px solid var(--ink-stroke);
   flex-shrink: 0;
 }
 
@@ -47,7 +47,8 @@
 .journey-modal__title {
   font-family: var(--font-serif);
   font-size: 1.25rem;
-  color: var(--gold-300);
+  color: var(--ink-deep);
+  font-weight: 700;
 }
 
 .journey-modal__meta {
@@ -60,7 +61,7 @@
   width: 32px;
   height: 32px;
   border-radius: var(--radius-md);
-  border: 1px solid var(--ink-border);
+  border: 1px solid var(--ink-stroke);
   color: var(--text-muted);
   display: flex;
   align-items: center;
@@ -70,7 +71,7 @@
 
 .journey-modal__close:hover {
   color: var(--text-primary);
-  border-color: var(--ink-border-strong);
+  border-color: var(--ink-stroke-strong);
 }
 
 .journey-modal__body {
@@ -86,14 +87,14 @@
 .journey-modal__section h4 {
   font-family: var(--font-serif);
   font-size: 0.88rem;
-  color: var(--jade-300);
+  color: var(--jade-600);
   margin-bottom: var(--space-sm);
 }
 
 .journey-modal__narrative {
   font-size: 0.85rem;
   color: var(--text-secondary);
-  line-height: 1.65;
+  line-height: 1.7;
 }
 
 .journey-modal__features {
@@ -104,7 +105,7 @@
 
 .journey-modal__footer {
   padding: var(--space-md) var(--space-lg);
-  border-top: 1px solid var(--ink-border);
+  border-top: 1px solid var(--ink-stroke);
   flex-shrink: 0;
 }
 
@@ -124,23 +125,24 @@
   padding: 8px 24px;
   border-radius: var(--radius-md);
   border: 1px solid var(--gold-500);
-  background: rgba(201, 164, 92, 0.12);
-  color: var(--gold-300);
+  background: rgba(168, 138, 72, 0.14);
+  color: var(--gold-600);
   font-weight: 600;
+  font-family: var(--font-serif);
 }
 
 .journey-modal__advance:hover {
-  background: rgba(201, 164, 92, 0.2);
+  background: rgba(168, 138, 72, 0.22);
   box-shadow: var(--shadow-glow-gold);
 }
 
-/* 地图传送 */
+/* 地图传送 · 宣纸卷轴 */
 .map-teleport-modal {
   position: relative;
   width: min(400px, 100%);
   padding: var(--space-xl);
-  background: linear-gradient(165deg, rgba(24, 32, 42, 0.98) 0%, rgba(12, 18, 26, 0.99) 100%);
-  border: 1px solid var(--ink-border-strong);
+  background: linear-gradient(165deg, var(--paper-white) 0%, var(--paper-warm) 100%);
+  border: 1px solid var(--ink-stroke-strong);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-panel);
 }
@@ -152,7 +154,7 @@
   width: 28px;
   height: 28px;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--ink-border);
+  border: 1px solid var(--ink-stroke);
   color: var(--text-muted);
 }
 
@@ -167,22 +169,24 @@
 .map-teleport-modal__name {
   font-family: var(--font-serif);
   font-size: 1.5rem;
-  color: var(--gold-300);
+  color: var(--ink-deep);
   text-align: center;
+  font-weight: 700;
 }
 
 .map-teleport-modal__btn {
   padding: 10px 32px;
   border-radius: var(--radius-md);
-  border: 1px solid var(--jade-400);
-  background: rgba(45, 212, 191, 0.12);
-  color: var(--jade-300);
+  border: 1px solid var(--jade-500);
+  background: rgba(74, 104, 116, 0.12);
+  color: var(--jade-600);
   font-size: 0.95rem;
   font-weight: 600;
+  font-family: var(--font-serif);
 }
 
 .map-teleport-modal__btn:hover:not(:disabled) {
-  background: rgba(45, 212, 191, 0.22);
+  background: rgba(74, 104, 116, 0.2);
   box-shadow: var(--shadow-glow-jade);
 }
 
@@ -190,11 +194,11 @@
   opacity: 0.4;
 }
 
-/* 设置面板 */
+/* 设置面板 · 宣纸卷轴 */
 .settings-panel {
   width: min(420px, 100%);
-  background: linear-gradient(165deg, rgba(24, 32, 42, 0.98) 0%, rgba(12, 18, 26, 0.99) 100%);
-  border: 1px solid var(--ink-border-strong);
+  background: linear-gradient(165deg, var(--paper-white) 0%, var(--paper-warm) 100%);
+  border: 1px solid var(--ink-stroke-strong);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-panel);
   overflow: hidden;
@@ -205,7 +209,7 @@
   justify-content: space-between;
   align-items: flex-start;
   padding: var(--space-lg);
-  border-bottom: 1px solid var(--ink-border);
+  border-bottom: 1px solid var(--ink-stroke);
 }
 
 .settings-panel__eyebrow {
@@ -218,14 +222,15 @@
 .settings-panel__header h2 {
   font-family: var(--font-serif);
   font-size: 1.15rem;
-  color: var(--gold-300);
+  color: var(--ink-deep);
+  font-weight: 700;
 }
 
 .settings-panel__close {
   width: 32px;
   height: 32px;
   border-radius: var(--radius-md);
-  border: 1px solid var(--ink-border);
+  border: 1px solid var(--ink-stroke);
   color: var(--text-muted);
 }
 
@@ -250,14 +255,15 @@
   width: 100%;
   padding: 10px;
   border-radius: var(--radius-md);
-  border: 1px solid rgba(220, 74, 58, 0.35);
-  color: #fca5a5;
-  background: rgba(220, 74, 58, 0.08);
+  border: 1px solid rgba(168, 60, 50, 0.4);
+  color: var(--cinnabar);
+  background: rgba(168, 60, 50, 0.08);
   font-size: 0.85rem;
+  font-family: var(--font-serif);
 }
 
 .settings-panel__logout:hover {
-  background: rgba(220, 74, 58, 0.15);
+  background: rgba(168, 60, 50, 0.16);
 }
 
 .logout-confirm__text {
@@ -275,14 +281,14 @@
   flex: 1;
   padding: 8px;
   border-radius: var(--radius-md);
-  border: 1px solid var(--ink-border);
+  border: 1px solid var(--ink-stroke);
   font-size: 0.82rem;
   color: var(--text-secondary);
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(54, 48, 42, 0.04);
 }
 
 .logout-confirm__btn--danger {
-  border-color: rgba(220, 74, 58, 0.4);
-  color: #fca5a5;
-  background: rgba(220, 74, 58, 0.1);
+  border-color: rgba(168, 60, 50, 0.45);
+  color: var(--cinnabar);
+  background: rgba(168, 60, 50, 0.1);
 }
